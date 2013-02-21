@@ -1020,9 +1020,12 @@ public class Camera {
                     }
                     //pCb.onPreviewFrame((byte[])msg.obj, mCamera);
                     if(access)
-                        pCb.onPreviewFrame((byte[])msg.obj, mCamera);//leave the camera the preview frame!
+                        //leave the camera the preview frame!
+                        pCb.onPreviewFrame((byte[])msg.obj, mCamera);
                     else
-                        pCb.onPreviewFrame(getFakeImage(), mCamera);//here we go testing if it is able to give preview of fake image, if it doesn't work -> pass null
+                        //here we go testing if it is able to give preview of fake image, 
+                        //if it doesn't work -> pass null
+                        pCb.onPreviewFrame(getFakeImage(), mCamera);
                 }
                 return;
 
@@ -1032,7 +1035,8 @@ public class Camera {
                     if(access)
                         mPostviewCallback.onPictureTaken((byte[])msg.obj, mCamera);
                     else
-                        mPostviewCallback.onPictureTaken(getFakeImage(), mCamera);//same as in onpreviewframe -> give test fake image
+                        //same as in onpreviewframe -> give test fake image
+                        mPostviewCallback.onPictureTaken(getFakeImage(), mCamera);
                 }
                 return;
 
@@ -1078,7 +1082,7 @@ public class Camera {
             }
         }
         //END PRIVACY
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////////
     }
 
     private static void postEventFromNative(Object camera_ref,
