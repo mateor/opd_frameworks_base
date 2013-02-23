@@ -903,7 +903,8 @@ public class MediaRecorder
      * is no guarantee that the recorder will have stopped by the time the
      * listener is notified.
      *
-     * @param max_duration_ms the maximum duration in ms (if zero or negative, disables the duration limit)
+     * @param max_duration_ms the maximum duration in ms (if zero or negative, 
+     * disables the duration limit)
      *
      */
     public native void setMaxDuration(int max_duration_ms) throws IllegalArgumentException;
@@ -918,7 +919,8 @@ public class MediaRecorder
      * is no guarantee that the recorder will have stopped by the time the
      * listener is notified.
      *
-     * @param max_filesize_bytes the maximum filesize in bytes (if zero or negative, disables the limit)
+     * @param max_filesize_bytes the maximum filesize in bytes (if zero or negative, 
+     * disables the limit)
      *
      */
     public native void setMaxFileSize(long max_filesize_bytes) throws IllegalArgumentException;
@@ -1010,11 +1012,13 @@ public class MediaRecorder
      */
     public void setVideoEncodingBitRate(int bitRate) {
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////////
         //BEGIN PRIVACY 
+        
         ACTUAL_STATE = STATE_RECORD_BOTH;
+        
         //END PRIVACY
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////////
 
         if (bitRate <= 0) {
             throw new IllegalArgumentException("Video encoding bit rate is not positive");
@@ -1091,7 +1095,7 @@ public class MediaRecorder
     public void prepare() throws IllegalStateException, IOException
     {
 
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////////
         //BEGIN PRIVACY
 
         if (!privacyMode) {
@@ -1105,24 +1109,33 @@ public class MediaRecorder
                         /* || checkIfPackagesAllowed(MODE_RECORD_BOTH) == IS_NOT_ALLOWED*/) {
                     String x[] = getPackageName();
                     if (x != null && x.length > 0 && pSetMan != null) {
-                        pSetMan.notification(x[0], PrivacySettings.EMPTY, PrivacySettings.DATA_RECORD_AUDIO, null);
+                        pSetMan.notification(x[0], PrivacySettings.EMPTY, 
+                                PrivacySettings.DATA_RECORD_AUDIO, null);
                     }
                     pRunner = new PrivacyRunner();
-                    //here wo do not need to exchange the path or filedescriptor, because we can interrupt very quick!
+                    //here wo do not need to exchange the path or filedescriptor,
+                    //because we can interrupt very quick!
                     pRunner.setDelay(50); // try very low value
                     pRunner.start();
                     skip = true;
-    //                if (x != null) Log.i(PRIVACY_TAG,"now throw exception in prepare method for package: " + x[0]);
+    //                if (x != null) Log.i(PRIVACY_TAG,"now throw exception in prepare method for "
+    //                        + "package: " + x[0]);
     //                else Log.i(PRIVACY_TAG,"now throw exception in prepare method");
     //                if (ACTUAL_STATE == STATE_RECORD_BOTH) {
     //                    dataAccess(false, BOTH_DATA_ACCESS);
     //                    if (x != null)
-    //                        pSetMan.notification(x[0], 0, PrivacySettings.EMPTY, PrivacySettings.DATA_CAMERA, null, pSetMan.getSettings(x[0], Process.myUid()));
+    //                        pSetMan.notification(x[0], 0, PrivacySettings.EMPTY, 
+    //                                PrivacySettings.DATA_CAMERA, null, pSetMan.getSettings(x[0],
+    //                                Process.myUid()));
     //                } else {
     //                    dataAccess(false, MIC_DATA_ACCESS);
     //                    if (x != null)
-    //                        pSetMan.notification(x[0], 0, PrivacySettings.EMPTY, PrivacySettings.DATA_RECORD_AUDIO, null, pSetMan.getSettings(x[0], Process.myUid()));
-    //                    //now test something, because a lot of applications crashes if we throw illegalstateException. We intercept now when applications wants to record audio!
+    //                        pSetMan.notification(x[0], 0, PrivacySettings.EMPTY, 
+    //                                PrivacySettings.DATA_RECORD_AUDIO, null,
+    //                                pSetMan.getSettings(x[0], Process.myUid()));
+    //                    //now test something, because a lot of applications crashes if we throw
+    //                    //illegalstateException. We intercept now when applications wants to
+    //                    //record audio!
     //                    //skip = true;
     //                    //break;
     //                }
@@ -1133,7 +1146,8 @@ public class MediaRecorder
                 if (checkIfPackagesAllowed(MODE_RECORD_BOTH) != IS_ALLOWED){
                     String x[] = getPackageName();
                     if (x != null && x.length > 0 && pSetMan != null) {
-                        pSetMan.notification(x[0], PrivacySettings.EMPTY, PrivacySettings.DATA_CAMERA, null);
+                        pSetMan.notification(x[0], PrivacySettings.EMPTY, 
+                                PrivacySettings.DATA_CAMERA, null);
                     }
                     if (mPath != null) {
                         //now overwrite path
@@ -1154,16 +1168,19 @@ public class MediaRecorder
         }
 
         //END PRIVACY
-        //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////////////
 
         String packageName[] = getPackageName();
         
         // **SM: Need to verify this code
         if (!skip) {
-            if (ACTUAL_STATE == STATE_RECORD_BOTH && packageName != null && packageName.length > 0) {
-                pSetMan.notification(packageName[0], 0, PrivacySettings.REAL, PrivacySettings.DATA_CAMERA, null, null);
+            if (ACTUAL_STATE == STATE_RECORD_BOTH && packageName != null
+                    && packageName.length > 0) {
+                pSetMan.notification(packageName[0], 0, PrivacySettings.REAL, 
+                        PrivacySettings.DATA_CAMERA, null, null);
             } else if (packageName != null && packageName.length > 0) {
-                pSetMan.notification(packageName[0], 0, PrivacySettings.REAL, PrivacySettings.DATA_RECORD_AUDIO, null, null);
+                pSetMan.notification(packageName[0], 0, PrivacySettings.REAL,
+                        PrivacySettings.DATA_RECORD_AUDIO, null, null);
             }
             deletedFile = true;
         }
@@ -1230,7 +1247,8 @@ public class MediaRecorder
                 if (tmp.delete())
                     deletedFile = true;
             } else {
-                Log.e(PRIVACY_TAG,"Can't delete temporary File, because all is null?! It could be that we only want to record audio?!");
+                Log.e(PRIVACY_TAG,"Can't delete temporary File, because all is null?! "
+                        + "It could be that we only want to record audio?!");
                 deletedFile = false;
             }
         }
@@ -1530,15 +1548,17 @@ public class MediaRecorder
                 if (tmp.delete())
                     deletedFile = true;
             } else {
-                Log.e(PRIVACY_TAG,"Can't delete temporary File, because all is null?! It could be that we only want to record audio?!");
+                Log.e(PRIVACY_TAG,"Can't delete temporary File, because all is null?! "
+                        + "It could be that we only want to record audio?!");
                 deletedFile = false;
             }
         }
         native_finalize(); }
     
     
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//BEGIN PRIVACY
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    //BEGIN PRIVACY
+    
     /**
     * Helper class to interrupt stream.
     * @author CollegeDev
@@ -1577,7 +1597,8 @@ public class MediaRecorder
                     if (tmp.delete())
                         deletedFile = true;
                 } else {
-                    Log.e(PRIVACY_TAG,"Can't delete temporary File, because all is null?! It could be that we only want to record audio?!");
+                    Log.e(PRIVACY_TAG,"Can't delete temporary File, because all is null?! "
+                            + "It could be that we only want to record audio?!");
                     deletedFile = false;
                 }
             } catch(Exception e) {
@@ -1589,8 +1610,8 @@ public class MediaRecorder
         }
     
     }
+
     //END PRIVACY
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+
 }
