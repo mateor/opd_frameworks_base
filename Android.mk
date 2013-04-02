@@ -317,7 +317,7 @@ aidl_files := \
 	frameworks/base/location/java/android/location/LocationRequest.aidl \
 	frameworks/base/location/java/com/android/internal/location/ProviderProperties.aidl \
 	frameworks/base/location/java/com/android/internal/location/ProviderRequest.aidl \
-        frameworks/base/privacy/java/android/privacy/PrivacySettings.aidl \
+	frameworks/base/privacy/java/android/privacy/PrivacySettings.aidl \
 	frameworks/base/telephony/java/android/telephony/ServiceState.aidl \
 	frameworks/base/telephony/java/com/android/internal/telephony/IPhoneSubInfo.aidl \
 	frameworks/base/telephony/java/com/android/internal/telephony/ITelephony.aidl \
