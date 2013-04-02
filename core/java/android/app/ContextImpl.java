@@ -1082,7 +1082,8 @@ class ContextImpl extends Context {
 
     @Override
     public void sendBroadcast(Intent intent) {
-        warnIfCallingFromSystemProcess();
+        if(!isPrivacyBroadCast(intent))
+            warnIfCallingFromSystemProcess();
         String resolvedType = intent.resolveTypeIfNeeded(getContentResolver());
         try {
             intent.setAllowFds(false);
@@ -1096,7 +1097,8 @@ class ContextImpl extends Context {
 
     @Override
     public void sendBroadcast(Intent intent, String receiverPermission) {
-        warnIfCallingFromSystemProcess();
+        if(!isPrivacyBroadCast(intent))
+            warnIfCallingFromSystemProcess();
         String resolvedType = intent.resolveTypeIfNeeded(getContentResolver());
         try {
             intent.setAllowFds(false);
@@ -1111,7 +1113,8 @@ class ContextImpl extends Context {
     @Override
     public void sendOrderedBroadcast(Intent intent,
             String receiverPermission) {
-        warnIfCallingFromSystemProcess();
+        if(!isPrivacyBroadCast(intent))
+            warnIfCallingFromSystemProcess();
         String resolvedType = intent.resolveTypeIfNeeded(getContentResolver());
         try {
             intent.setAllowFds(false);
@@ -1764,6 +1767,20 @@ class ContextImpl extends Context {
                       uri,
                       message);
     }
+
+    // BEGIN privacy-added
+    /**
+     * checks if current intent is a privacy related intent
+     * @param intent current intent
+     * @return true if intent contains privacy notifications, false otherwise
+     */
+    private boolean isPrivacyBroadCast(Intent intent) {
+        if(intent.getAction().equals(PrivacySettingsManager.ACTION_PRIVACY_NOTIFICATION))
+            return true;
+        else
+            return false;
+    }
+    // END privacy-modified
 
     private void warnIfCallingFromSystemProcess() {
         if (Process.myUid() == Process.SYSTEM_UID) {
