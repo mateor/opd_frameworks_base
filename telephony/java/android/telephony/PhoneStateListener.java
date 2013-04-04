@@ -18,7 +18,6 @@ package android.telephony;
 
 // BEGIN privacy-added
 import com.android.internal.telephony.IPhoneStateListener;
-
 import android.privacy.PrivacyServiceException;
 import android.privacy.PrivacySettings;
 import android.privacy.PrivacySettingsManager;
@@ -349,56 +348,85 @@ public class PhoneStateListener {
 
         public void onCellLocationChanged(Bundle bundle) {
             CellLocation location = CellLocation.newFromBundle(bundle);
+
+            /////////////////////////////////////////////////////////////////////////////////
+            // BEGIN PRIVACY
             //Message.obtain(mHandler, LISTEN_CELL_LOCATION, 0, 0, location).sendToTarget();
-            // BEGIN privacy-modified
-            PrivacySettingsManager pSetMan = PrivacySettingsManager.getPrivacyService(context);
-            
+            PrivacySettingsManager pSetMan = 
+                PrivacySettingsManager.getPrivacyService(context);
             try {
                 PrivacySettings pSet = pSetMan.getSettings(packageName);
                 if (pSet.getLocationNetworkSetting() != PrivacySettings.REAL) {
-                    // simply block the method call, since simulating cell location is not feasible
-                    //output = "[no output]";
-                    pSetMan.notification(packageName, pSet.getLocationNetworkSetting(), PrivacySettings.DATA_LOCATION_NETWORK, null);            
+                    //  simply block the method call, 
+                    //  since simulating cell location is not feasible
+                    //  output = "[no output]";
+                    pSetMan.notification(packageName, pSet.getLocationNetworkSetting(), 
+                        PrivacySettings.DATA_LOCATION_NETWORK, null);            
                 } else {
                     //output = location.toString();
-                    Message.obtain(mHandler, LISTEN_CELL_LOCATION, 0, 0, location).sendToTarget();
-                    pSetMan.notification(packageName, PrivacySettings.REAL, PrivacySettings.DATA_LOCATION_NETWORK, null);            
+                    Message.obtain(mHandler, 
+                        LISTEN_CELL_LOCATION, 0, 0, location).sendToTarget();
+                    pSetMan.notification(packageName, PrivacySettings.REAL, 
+                        PrivacySettings.DATA_LOCATION_NETWORK, null);            
                 }
             } catch (PrivacyServiceException e) {
-                pSetMan.notification(packageName, PrivacySettings.ERROR, PrivacySettings.DATA_LOCATION_NETWORK, null);
+                pSetMan.notification(packageName, PrivacySettings.ERROR, 
+                    PrivacySettings.DATA_LOCATION_NETWORK, null);
             }
-            // END privacy-modified
+            // END PRIVACY
+            /////////////////////////////////////////////////////////////////////////////////
+
         }
 
         public void onCallStateChanged(int state, String incomingNumber) {
-            //Message.obtain(mHandler, LISTEN_CALL_STATE, state, 0, incomingNumber).sendToTarget();
-            // BEGIN privacy-modified
-//            Log.d(TAG, "onCallStateChanged - state:" + state + " incoming number:" + incomingNumber);
-            // **SM: need to check this: I'm not sure that the appropriate behaviour for no context is to allow 
+            /////////////////////////////////////////////////////////////////////////////////
+            // BEGIN PRIVACY
+            // Message.obtain(mHandler, LISTEN_CALL_STATE, 
+            //     state, 0,incomingNumber).sendToTarget();
+            //  Log.d(TAG, "onCallStateChanged - state:" + state
+            //      + " incoming number:" + incomingNumber);
+            // **SM: need to check this: I'm not sure that the appropriate behaviour 
+            //      for no context is to allow 
             // only take action if an incoming phone number is actually transmitted
             if (incomingNumber != null && !incomingNumber.isEmpty()) {
-                PrivacySettingsManager pSetMan = pSetMan = PrivacySettingsManager.getPrivacyService(context);
+                PrivacySettingsManager pSetMan = pSetMan
+                    PrivacySettingsManager.getPrivacyService(context);
                 String output = "";
                 try {
                     PrivacySettings pSet = pSetMan.getSettings(packageName, uid);
-                    if (pSet != null && pSet.getIncomingCallsSetting() != PrivacySettings.REAL) {
-                        Message.obtain(mHandler, LISTEN_CALL_STATE, state, 0, output).sendToTarget();
-    //                    Log.d(TAG, "onCallStateChanged BLOCK - package:" + packageName + " uid:" + uid + " state:" + state + " output: " + output);
-                        pSetMan.notification(packageName, PrivacySettings.EMPTY, PrivacySettings.DATA_INCOMING_CALL, output);
+                    if (pSet != null && pSet.getIncomingCallsSetting() !=
+                            PrivacySettings.REAL) {
+                        Message.obtain(mHandler, LISTEN_CALL_STATE, 
+                            state, 0, output).sendToTarget();
+                        //  Log.d(TAG, "onCallStateChanged BLOCK - package:"
+                        //      + packageName + " uid:" + uid + " state:" + state
+                        //      + " output: " + output);
+                        pSetMan.notification(packageName, PrivacySettings.EMPTY, 
+                            PrivacySettings.DATA_INCOMING_CALL, output);
                     } else {
-                        Message.obtain(mHandler, LISTEN_CALL_STATE, state, 0, incomingNumber).sendToTarget();
-    //                    Log.d(TAG, "onCallStateChanged REAL 1 - package:" + packageName + " uid:" + uid + " state:" + state + " output: " + incomingNumber);
-                        pSetMan.notification(packageName, PrivacySettings.REAL, PrivacySettings.DATA_INCOMING_CALL, incomingNumber);
+                        Message.obtain(mHandler, LISTEN_CALL_STATE, 
+                            state, 0, incomingNumber).sendToTarget();
+                        //  Log.d(TAG, "onCallStateChanged REAL 1 - package:"
+                        //      + packageName + " uid:" + uid + " state:" + state
+                        //      + " output: " + incomingNumber);
+                        pSetMan.notification(packageName, PrivacySettings.REAL,
+                            PrivacySettings.DATA_INCOMING_CALL, incomingNumber);
                     }
                 } catch (PrivacyServiceException e) {
-                    Message.obtain(mHandler, LISTEN_CALL_STATE, state, 0, output).sendToTarget();
-                    pSetMan.notification(packageName, PrivacySettings.ERROR, PrivacySettings.DATA_INCOMING_CALL, output);
+                    Message.obtain(mHandler, LISTEN_CALL_STATE, 
+                        state, 0, output).sendToTarget();
+                    pSetMan.notification(packageName, PrivacySettings.ERROR, 
+                        PrivacySettings.DATA_INCOMING_CALL, output);
                 }
             } else {
-//                Log.d(TAG, "onCallStateChanged REAL 2 - package:" + packageName + " uid:" + uid + " state:" + state + " output: " + incomingNumber);
-                Message.obtain(mHandler, LISTEN_CALL_STATE, state, 0, incomingNumber).sendToTarget();
+                //  Log.d(TAG, "onCallStateChanged REAL 2 - package:" 
+                //      + packageName + " uid:" + uid + " state:" + state 
+                //      + " output: " + incomingNumber);
+                Message.obtain(mHandler, LISTEN_CALL_STATE, 
+                    state, 0, incomingNumber).sendToTarget();
             }
-            // END privacy-modified
+            // END PRIVACY
+            /////////////////////////////////////////////////////////////////////////////////
         }
 
         public void onDataConnectionStateChanged(int state, int networkType) {
@@ -425,7 +453,6 @@ public class PhoneStateListener {
 
     Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
-            //Log.d("TelephonyRegistry", "what=0x" + Integer.toHexString(msg.what) + " msg=" + msg);
             switch (msg.what) {
                 case LISTEN_SERVICE_STATE:
                     PhoneStateListener.this.onServiceStateChanged((ServiceState)msg.obj);
