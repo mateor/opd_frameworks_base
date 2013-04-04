@@ -16,6 +16,31 @@
 
 package android.hardware;
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//BEGIN PRIVACY 
+
+import android.privacy.IPrivacySettingsManager;
+import android.privacy.PrivacyServiceException;
+import android.privacy.PrivacySettings;
+import android.privacy.PrivacySettingsManager;
+
+import android.content.Context;
+import android.content.pm.IPackageManager;
+import android.content.pm.PackageManager;
+
+import android.os.Process;
+import android.os.ServiceManager;
+import java.util.Random;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
+//END PRIVACY 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
 import android.content.Context;
@@ -41,31 +66,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//BEGIN PRIVACY 
-
-import android.privacy.IPrivacySettingsManager;
-import android.privacy.PrivacyServiceException;
-import android.privacy.PrivacySettings;
-import android.privacy.PrivacySettingsManager;
-
-import android.content.Context;
-import android.content.pm.IPackageManager;
-import android.content.pm.PackageManager;
-
-import android.os.Process;
-import android.os.ServiceManager;
-import java.util.Random;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-
-//END PRIVACY 
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  * The Camera class is used to set image capture settings, start/stop preview,
@@ -1329,22 +1329,24 @@ public class Camera {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //BEGIN PRIVACY
-    //check if we are in privacy mode!, this is a to hard method to prevent from making pictures, 
-    //because camera will freeze!    
+    //  check if we are in privacy mode! 
+    //  this is a to hard method to prevent from making pictures, 
+    //  because camera will freeze!    
     if(!privacyMode) {
         initiate();
     }
     if(checkIfPackagesAllowed() != IS_ALLOWED) {
-//      mShutterCallback = null;
+    //  mShutterCallback = null;
         mRawImageCallback = null;
         Log.i(PRIVACY_TAG,"blocked rawImageCallback -> it will never be called!");
-//      mPostviewCallback = null;
-//      mJpegCallback = null;
-//      dataAccess(false);
+    //  mPostviewCallback = null;
+    //  mJpegCallback = null;
+    //  dataAccess(false);
     }
-//    else {
-//        dataAccess(true);
-//    }
+    //  else {
+    //  dataAccess(true);
+    //  }
+
     //END PRIVACY
     ///////////////////////////////////////////////////////////////////////////////////////////////
     
