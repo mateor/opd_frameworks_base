@@ -20,10 +20,6 @@
 
 package android.speech.srec;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.IllegalStateException;
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //BEGIN PRIVACY
 
@@ -42,6 +38,11 @@ import android.util.Log;
 
 //END PRIVACY
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.IllegalStateException;
+
 
 /**
  * PCM input stream from the microphone, 16 bits per sample.
