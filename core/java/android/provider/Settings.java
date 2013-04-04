@@ -16,6 +16,19 @@
 
 package android.provider;
 
+//////////////////////////////////////////////////
+// PRIVACY
+import android.content.pm.IPackageManager;
+import android.os.ServiceManager;
+import android.os.Process;
+import java.util.Random;
+
+import android.privacy.IPrivacySettingsManager;
+import android.privacy.PrivacySettings;
+import android.privacy.PrivacySettingsManager;
+//END PRIVACY
+//////////////////////////////////////////////////
+
 import android.annotation.SdkConstant;
 import android.annotation.SdkConstant.SdkConstantType;
 import android.app.SearchManager;
@@ -57,17 +70,6 @@ import com.android.internal.widget.ILockSettings;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.HashSet;
-
-//////////////////////////////////////////////////
-import android.content.pm.IPackageManager;
-import android.os.ServiceManager;
-import android.os.Process;
-import java.util.Random;
-
-import android.privacy.IPrivacySettingsManager;
-import android.privacy.PrivacySettings;
-import android.privacy.PrivacySettingsManager;
-//////////////////////////////////////////////////
 
 /**
  * The Settings provider contains global system-level device preferences.
@@ -2773,9 +2775,11 @@ public final class Settings {
             if(name.equals(ANDROID_ID)) {
                 initiate();
                 try {
-                    if (pSetMan == null) pSetMan = PrivacySettingsManager.getPrivacyService();
+                    if (pSetMan == null) pSetMan = 
+                            PrivacySettingsManager.getPrivacyService();
                     if(mPm == null) mPm = 
-                            IPackageManager.Stub.asInterface(ServiceManager.getService("package"));
+                            IPackageManager.Stub.asInterface
+                            (ServiceManager.getService("package"));
                     PrivacySettings settings = null;
                     final String[] packages = getPackageName();
                     if (packages != null && packages.length > 0) {
@@ -2794,18 +2798,21 @@ public final class Settings {
                                             settings.getAndroidIdSetting(),
                                             PrivacySettings.DATA_ANDROID_ID,
                                             "q4a5w896ay21dr46", null);
-                                    //we can not pull out empty android id, because we get bootloops     
+                                    // we can not pull out empty android id
+                                    // because we get bootloops     
                                     return "q4a5w896ay21dr46"; 
                                 }
                             }
-                            if (i == packages.length - 1) //package is allowed to get android id
+                            if (i == packages.length - 1) 
+                            //package is allowed to get android id
                                 pSetMan.notification(packages[packages.length - 1], 0,
-                                        PrivacySettings.REAL, PrivacySettings.DATA_ANDROID_ID,
+                                        PrivacySettings.REAL,PrivacySettings.DATA_ANDROID_ID,
                                         null, null);
                             settings = null;
                         }
                     } else {
-                        pSetMan.notification(packages[packages.length - 1], 0, PrivacySettings.REAL,
+                        pSetMan.notification(packages[packages.length - 1], 0, 
+                                PrivacySettings.REAL,
                                 PrivacySettings.DATA_ANDROID_ID, null, null);
                     }
                 } catch (Exception e) {
@@ -3149,14 +3156,16 @@ public final class Settings {
                     final String[] package_names = mPm.getPackagesForUid(uid);
                     return package_names;
                 } else {
-                    mPm = IPackageManager.Stub.asInterface(ServiceManager.getService("package"));
+                    mPm = IPackageManager.Stub.asInterface
+                            (ServiceManager.getService("package"));
                     int uid = Process.myUid();
                     final String[] package_names = mPm.getPackagesForUid(uid);
                     return package_names;
                 }
             } catch(Exception e) {
                 e.printStackTrace();
-                Log.e(PRIVACY_TAG,"something went wrong with getting package name");
+                Log.e(PRIVACY_TAG,
+                        "something went wrong with getting package name");
                 return null;
             }
         }
