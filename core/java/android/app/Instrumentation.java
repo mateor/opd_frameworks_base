@@ -1418,14 +1418,14 @@ public class Instrumentation {
         boolean allowIntent = false;
         
         try {
-            Log.d(TAG,"Privacy:Instrumentation:execStartActivity: execStartActivity for "
+            PrivacyDebugger.d(TAG,"Privacy:Instrumentation:execStartActivity: execStartActivity for "
                     + who.getPackageName());
             if (!(intent.getAction() != null && (intent.getAction().equals
                 (Intent.ACTION_CALL) || intent.getAction().equals(Intent.ACTION_DIAL)))) {
                 // all unprotected intents are permitted
                 allowIntent = true;
             } else {
-                Log.d(TAG,"Privacy:Instrumentation:execStartActivity: "
+                PrivacyDebugger.d(TAG,"Privacy:Instrumentation:execStartActivity: "
                         + Intent action = Intent.ACTION_CALL or Intent.ACTION_DIAL for "
                         + who.getPackageName());
                 if (mPrvSvc == null) mPrvSvc = PrivacySettingsManager.getPrivacyService();
@@ -1433,21 +1433,22 @@ public class Instrumentation {
                     PrivacySettings privacySettings = 
                         mPrvSvc.getSettings(who.getPackageName());
                     if (privacySettings == null) {
-                        Log.d(TAG,"Privacy:Instrumentation:execStartActivity: Call allowed: "
+                        PrivacyDebugger.d(TAG,
+                                "Privacy:Instrumentation:execStartActivity: Call allowed: "
                                 + "No settings for package: " + who.getPackageName());
                         allowIntent = true;
                         mPrvSvc.notification(who.getPackageName(), PrivacySettings.REAL, 
                                 PrivacySettings.DATA_PHONE_CALL, null);
                     } else if (privacySettings.getPhoneCallSetting() == 
                         PrivacySettings.REAL) {
-                        Log.d(TAG,"Privacy:Instrumentation:execStartActivity: "
+                        PrivacyDebugger.d(TAG,"Privacy:Instrumentation:execStartActivity: "
                             + "Call allowed: Settings permit " + who.getPackageName());
                         allowIntent = true;
                         mPrvSvc.notification(who.getPackageName(), 
                             privacySettings.getPhoneCallSetting(),
                             PrivacySettings.DATA_PHONE_CALL, null);
                     } else {
-                        Log.d(TAG,"Privacy:Instrumentation:execStartActivity: "
+                        PrivacyDebugger.d(TAG,"Privacy:Instrumentation:execStartActivity: "
                             + "Call denied: Settings deny " + who.getPackageName());
                         // No settings = allowed; 
                         // any phone call setting but real == disallowed
@@ -1457,7 +1458,7 @@ public class Instrumentation {
                             PrivacySettings.DATA_PHONE_CALL, null);
                     }
                 } catch (PrivacyServiceException e) {
-                    Log.e(TAG,"Privacy:Instrumentation:execStartActivity: "
+                    PrivacyDebugger.e(TAG,"Privacy:Instrumentation:execStartActivity: "
                         + "PrivacyServiceException occurred", e);
                     allowIntent = false;
                     mPrvSvc.notification(who.getPackageName(), PrivacySettings.ERROR, 
@@ -1486,17 +1487,17 @@ public class Instrumentation {
                             extras.putInt("phoneState", TelephonyManager.CALL_STATE_IDLE);
                             privacy.putExtras(extras);
                             tmp.sendBroadcast(privacy);
-                            Log.i("PrivacyContext","sent privacy intent");
+                            PrivacyDebugger.i("PrivacyContext","sent privacy intent");
                         }
                     }).start();
                 }
             }
         } catch(Exception e) {
             if(who != null) {
-                Log.e(TAG,"Privacy:Instrumentation:execStartActivity: "
+                PrivacyDebugger.e(TAG,"Privacy:Instrumentation:execStartActivity: "
                     + "Exception occurred handling intent for " + who.getPackageName(), e);
             } else {
-                Log.e(TAG,"Privacy:Instrumentation:execStartActivity: "
+                PrivacyDebugger.e(TAG,"Privacy:Instrumentation:execStartActivity: "
                     + "Exception occurred handling intent for unknown package", e);
             }
         }
@@ -1526,7 +1527,7 @@ public class Instrumentation {
         try {
             if (!allowIntent) return new ActivityResult(requestCode, intent);
         } catch(Exception e) {
-            Log.e(TAG,"Privacy:Instrumentation:execStartActivity: "
+            PrivacyDebugger.e(TAG,"Privacy:Instrumentation:execStartActivity: "
                 + "Exception occurred while trying to create ActivityResult", e);
             return null;
         }
@@ -1578,7 +1579,7 @@ public class Instrumentation {
         /////////////////////////////////////////////////////////////////////////////////
         // BEGIN PRIVACY
 
-        Log.d(TAG,"Privacy:Instrumentation:execStartActivitiesAsUser: "
+        PrivacyDebugger.d(TAG,"Privacy:Instrumentation:execStartActivitiesAsUser: "
             + "execStartActivitiesAsUser for " + who.getPackageName());
         if (intents != null) {
             boolean checkPrivacySettings = false;
@@ -1594,7 +1595,7 @@ public class Instrumentation {
                         break;
                     }
                 } catch (Exception e) {
-                    Log.e(TAG,"Privacy:Instrumentation:execStartActivitiesAsUser: "
+                    PrivacyDebugger.e(TAG,"Privacy:Instrumentation:execStartActivitiesAsUser: "
                         + "Exception occurred when checking intents for "
                         + who.getPackageName(), e);
                     //  If an exception occurred, then check the 
@@ -1604,10 +1605,10 @@ public class Instrumentation {
             }
 
             if (!checkPrivacySettings) {
-                Log.d(TAG,"Privacy:Instrumentation:execStartActivitiesAsUser: "
+                PrivacyDebugger.d(TAG,"Privacy:Instrumentation:execStartActivitiesAsUser: "
                     + "No provided intents triggered checking for " + who.getPackageName());
             } else {
-                Log.d(TAG,"Privacy:Instrumentation:execStartActivitiesAsUser: "
+                PrivacyDebugger.d(TAG,"Privacy:Instrumentation:execStartActivitiesAsUser: "
                     + "One or more intents triggered checking for " + who.getPackageName());
                 boolean allowCallIntents = false;
                 if (mPrvSvc == null) mPrvSvc = PrivacySettingsManager.getPrivacyService();
@@ -1615,7 +1616,7 @@ public class Instrumentation {
                     PrivacySettings privacySettings = 
                         mPrvSvc.getSettings(who.getPackageName());
                     if (privacySettings == null) {
-                        Log.d(TAG,
+                        PrivacyDebugger.d(TAG,
                             "Privacy:Instrumentation:execStartActivitiesAsUser: "
                             + "Call intents allowed: No settings for package: "
                             + who.getPackageName());
@@ -1624,7 +1625,7 @@ public class Instrumentation {
                             PrivacySettings.DATA_PHONE_CALL, null);
                     } else if (privacySettings.getPhoneCallSetting() == 
                         PrivacySettings.REAL) {
-                        Log.d(TAG,
+                        PrivacyDebugger.d(TAG,
                             "Privacy:Instrumentation:execStartActivitiesAsUser: "
                             + "Call intents allowed: Settings permit " 
                             + who.getPackageName());
@@ -1633,7 +1634,7 @@ public class Instrumentation {
                             privacySettings.getPhoneCallSetting(),
                             PrivacySettings.DATA_PHONE_CALL, null);
                     } else {
-                        Log.d(TAG,
+                        PrivacyDebugger.d(TAG,
                             "Privacy:Instrumentation:execStartActivitiesAsUser: "
                             + "Call intents denied: Settings deny " + who.getPackageName());
                         allowCallIntents = false;
@@ -1642,7 +1643,7 @@ public class Instrumentation {
                             PrivacySettings.DATA_PHONE_CALL, null);
                     }
                 } catch (PrivacyServiceException e) {
-                    Log.e(TAG,
+                    PrivacyDebugger.e(TAG,
                         + "Privacy:Instrumentation:execStartActivitiesAsUser: "
                         + "PrivacyServiceException occurred", e);
                     allowCallIntents = false;
@@ -1662,7 +1663,7 @@ public class Instrumentation {
                                     filteredIntents.add(intent);
                             }
                         } catch (Exception e) {
-                            Log.e(TAG,
+                            PrivacyDebugger.e(TAG,
                                 "Privacy:Instrumentation:execStartActivitiesAsUser: "
                                 + "Exception occurred when checking intent for "
                                 + who.getPackageName(), e);
@@ -1689,7 +1690,7 @@ public class Instrumentation {
                             extras.putInt("phoneState", TelephonyManager.CALL_STATE_IDLE);
                             privacy.putExtras(extras);
                             tmp.sendBroadcast(privacy);
-                            Log.i("PrivacyContext","sent privacy intent");
+                            PrivacyDebugger.i("PrivacyContext","sent privacy intent");
                         }
                     }).start();
                 }
@@ -1765,12 +1766,13 @@ public class Instrumentation {
 
         boolean allowIntent = true;
         try {
-            Log.d(TAG,"Privacy:Instrumentation:execStartActivity (with Fragments): "
+            PrivacyDebugger.d(TAG,
+                "Privacy:Instrumentation:execStartActivity (with Fragments): "
                 + "execStartActivity for " + who.getPackageName());
             if (intent.getAction() != null && (intent.getAction().equals(Intent.ACTION_CALL)
                 || intent.getAction().equals(Intent.ACTION_DIAL))) {
                 allowIntent = false;
-                Log.d(TAG,
+                PrivacyDebugger.d(TAG,
                     "Privacy:Instrumentation:execStartActivity (with Fragments): "
                     + "Intent action = Intent.ACTION_CALL or Intent.ACTION_DIAL for " 
                     + who.getPackageName());
@@ -1779,7 +1781,7 @@ public class Instrumentation {
                     PrivacySettings privacySettings = 
                         mPrvSvc.getSettings(who.getPackageName());
                     if (privacySettings == null) {
-                        Log.d(TAG,
+                        PrivacyDebugger.d(TAG,
                             "Privacy:Instrumentation:execStartActivity (with Fragments): "
                             + "Call allowed: No settings for package: "
                             + who.getPackageName());
@@ -1788,7 +1790,7 @@ public class Instrumentation {
                             PrivacySettings.DATA_PHONE_CALL, null);
                     } else if (privacySettings.getPhoneCallSetting() == 
                         PrivacySettings.REAL) {
-                        Log.d(TAG,
+                        PrivacyDebugger.d(TAG,
                             +"Privacy:Instrumentation:execStartActivity (with Fragments): "
                             + "Call allowed: Settings permit " + who.getPackageName());
                         allowIntent = true;
@@ -1796,7 +1798,7 @@ public class Instrumentation {
                             privacySettings.getPhoneCallSetting(), 
                             PrivacySettings.DATA_PHONE_CALL, null);
                     } else {
-                        Log.d(TAG,
+                        PrivacyDebugger.d(TAG,
                             "Privacy:Instrumentation:execStartActivity (with Fragments): "
                             + "Call denied: Settings deny " + who.getPackageName());
                         //  No settings = allowed; 
@@ -1807,7 +1809,7 @@ public class Instrumentation {
                             PrivacySettings.DATA_PHONE_CALL, null);
                     }
                 } catch (PrivacyServiceException e) {
-                    Log.e(TAG,
+                    PrivacyDebugger.e(TAG,
                         "Privacy:Instrumentation:execStartActivity (with Fragments): "
                         + "PrivacyServiceException occurred", e);
                     allowIntent = false;
@@ -1835,18 +1837,18 @@ public class Instrumentation {
                             extras.putInt("phoneState", TelephonyManager.CALL_STATE_IDLE);
                             privacy.putExtras(extras);
                             tmp.sendBroadcast(privacy);
-                            Log.i("PrivacyContext","sent privacy intent");
+                            PrivacyDebugger.i("PrivacyContext","sent privacy intent");
                         }
                     }).start();
                 }
             }
         } catch(Exception e) {
             if(who != null) {
-                Log.e(TAG,
+                PrivacyDebugger.e(TAG,
                     "Privacy:Instrumentation:execStartActivity (with Fragments): "
                     + "Exception occurred handling intent for " + who.getPackageName(), e);
             } else {
-                Log.e(TAG,"Privacy:Instrumentation:execStartActivity (with Fragments): "
+                PrivacyDebugger.e(TAG,"Privacy:Instrumentation:execStartActivity (with Fragments): "
                     + "Exception occurred handling intent for unknown package", e);
             }
         }
@@ -1876,7 +1878,7 @@ public class Instrumentation {
         try {
             if (!allowIntent) return new ActivityResult(requestCode, intent);
         } catch(Exception e) {
-            Log.e(TAG,
+            PrivacyDebugger.e(TAG,
                 "Privacy:Instrumentation:execStartActivity (with Fragments): "
                 + "Exception occurred while trying to create ActivityResult", e);
             return null;
@@ -1937,13 +1939,13 @@ public class Instrumentation {
 
         boolean allowIntent = true;
         try {
-            Log.d(TAG,
+            PrivacyDebugger.d(TAG,
                 "Privacy:Instrumentation:execStartActivity (with UserHandle): "
                 + "execStartActivity for " + who.getPackageName());
             if (intent.getAction() != null && (intent.getAction().equals(Intent.ACTION_CALL)
                     || intent.getAction().equals(Intent.ACTION_DIAL))) {
                 allowIntent = false;
-                Log.d(TAG,
+                PrivacyDebugger.d(TAG,
                     "Privacy:Instrumentation:execStartActivity (with UserHandle): "
                     + "Intent action = Intent.ACTION_CALL or Intent.ACTION_DIAL for "
                     + who.getPackageName());
@@ -1951,7 +1953,7 @@ public class Instrumentation {
                 try {
                     PrivacySettings privacySettings = mPrvSvc.getSettings(who.getPackageName());
                     if (privacySettings == null) {
-                        Log.d(TAG,
+                        PrivacyDebugger.d(TAG,
                             "Privacy:Instrumentation:execStartActivity (with UserHandle): "
                             + "Call allowed: No settings for package: "
                             + who.getPackageName());
@@ -1960,7 +1962,7 @@ public class Instrumentation {
                             PrivacySettings.DATA_PHONE_CALL, null);
                     } else if (privacySettings.getPhoneCallSetting() == 
                             PrivacySettings.REAL) {
-                        Log.d(TAG,
+                        PrivacyDebugger.d(TAG,
                             "Privacy:Instrumentation:execStartActivity (with UserHandle): "
                                 + "Call allowed: Settings permit " + who.getPackageName());
                         allowIntent = true;
@@ -1968,7 +1970,7 @@ public class Instrumentation {
                             privacySettings.getPhoneCallSetting(), 
                             PrivacySettings.DATA_PHONE_CALL, null);
                     } else {
-                        Log.d(TAG,
+                        PrivacyDebugger.d(TAG,
                             "Privacy:Instrumentation:execStartActivity (with UserHandle): "
                             + "Call denied: Settings deny " + who.getPackageName());
                         //  No settings = allowed; 
@@ -1979,7 +1981,7 @@ public class Instrumentation {
                             PrivacySettings.DATA_PHONE_CALL, null);
                     }
                 } catch (PrivacyServiceException e) {
-                    Log.e(TAG,
+                    PrivacyDebugger.e(TAG,
                         "Privacy:Instrumentation:execStartActivity (with UserHandle): "
                         + "PrivacyServiceException occurred", e);
                     allowIntent = false;
@@ -2008,18 +2010,18 @@ public class Instrumentation {
                             extras.putInt("phoneState", TelephonyManager.CALL_STATE_IDLE);
                             privacy.putExtras(extras);
                             tmp.sendBroadcast(privacy);
-                            Log.i("PrivacyContext","sent privacy intent");
+                            PrivacyDebugger.i("PrivacyContext","sent privacy intent");
                         }
                     }).start();
                 }
             }
         } catch(Exception e) {
             if(who != null) {
-                Log.e(TAG,
+                PrivacyDebugger.e(TAG,
                     "Privacy:Instrumentation:execStartActivity (with UserHandle): "
                     + "Exception occurred handling intent for " + who.getPackageName(), e);
             } else {
-                Log.e(TAG,
+                PrivacyDebugger.e(TAG,
                     "Privacy:Instrumentation:execStartActivity (with UserHandle): "
                     + "Exception occurred handling intent for unknown package", e);
             }
@@ -2050,7 +2052,7 @@ public class Instrumentation {
         try {
             if (!allowIntent) return new ActivityResult(requestCode, intent);
         } catch(Exception e) {
-            Log.e(TAG,
+            PrivacyDebugger.e(TAG,
                 "Privacy:Instrumentation:execStartActivity (with UserHandle): "
                 + Exception occurred while trying to create ActivityResult", e);
             return null;

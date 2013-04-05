@@ -26,6 +26,7 @@ import android.privacy.IPrivacySettingsManager;
 import android.privacy.PrivacyServiceException;
 import android.privacy.PrivacySettings;
 import android.privacy.PrivacySettingsManager;
+import android.privacy.utilities.PrivacyDebugger;
 import android.telephony.CellInfo;
 import android.telephony.CellInfoGsm;
 import android.telephony.CellIdentityGsm;
@@ -59,9 +60,9 @@ private static final int PERMISSION_SERVICE_STATE = 4;
         try{
             registerPrivacy();
         } catch(Exception e){
-            Log.e(P_TAG,"failed to register privacy broadcastreceiver", e);
+            PrivacyDebugger.e(P_TAG,"failed to register privacy broadcastreceiver", e);
         }
-        Log.i(P_TAG,"constructor ready");
+        PrivacyDebugger.i(P_TAG,"constructor ready");
     }
 
     /** This broadCastReceiver receives the privacy intent for blocking phonecalls
@@ -76,10 +77,12 @@ private static final int PERMISSION_SERVICE_STATE = 4;
                 data = intent.getExtras();
                 String packageName = data.getString("packageName");
                 if(data.containsKey("packageName")){
-                    Log.i(P_TAG, "got blocked phone call INTENT from package: "
-                        + data.getString("packageName"));
+                    PrivacyDebugger.i(P_TAG, "got blocked phone call INTENT from package: "
+                       
+ + data.getString("packageName"));
                 } else{
-                    Log.i(P_TAG, "got blocked phone call INTENT without package information");
+                    PrivacyDebugger.i(P_TAG, 
+                        "got blocked phone call INTENT without package information");
                 }
                 if(packageName == null) return;
                 if(data.containsKey("phoneState")){
@@ -101,7 +104,7 @@ private static final int PERMISSION_SERVICE_STATE = 4;
                             return;
                     }
                 }
-                Log.i(P_TAG,"we forgot to put phoneState in Intent?");
+                PrivacyDebugger.i(P_TAG,"we forgot to put phoneState in Intent?");
             }
         }
     };
@@ -145,12 +148,12 @@ private static final int PERMISSION_SERVICE_STATE = 4;
 
     public void listen(String pkgForDebug, IPhoneStateListener callback, int events,
             boolean notifyNow) {
-        // Slog.d(TAG, "listen pkg=" + pkgForDebug + " events=0x" +
-        // Integer.toHexString(events));
+        //  PrivacyDebugger.d(TAG, "listen pkg=" + pkgForDebug + " events=0x" +
+        //      Integer.toHexString(events));
         try{
             registerPrivacy();
         } catch(Exception e){
-            Log.e(P_TAG,"failed to register privacy broadcastreceiver");
+            PrivacyDebugger.e(P_TAG,"failed to register privacy broadcastreceiver");
         }
         if (events != 0) {
             /* Checks permission and throws Security exception */
@@ -326,11 +329,11 @@ private static final int PERMISSION_SERVICE_STATE = 4;
                     try {
                         if(!isPackageAllowed(PERMISSION_SERVICE_STATE,r.pkgForDebug)){
                              state.setOperatorName("", "", "");
-                             Log.i(P_TAG,"package: " + r.pkgForDebug
+                             PrivacyDebugger.i(P_TAG,"package: " + r.pkgForDebug
                                  + " blocked for Cellinfo");
                         }
                         else
-                            Log.i(P_TAG,"package: " + r.pkgForDebug 
+                            PrivacyDebugger.i(P_TAG,"package: " + r.pkgForDebug 
                                 + " allowed for Cellinfo");
                         r.callback.onServiceStateChanged(new ServiceState(state));
                     } catch (RemoteException ex) {
@@ -366,12 +369,12 @@ private static final int PERMISSION_SERVICE_STATE = 4;
                             //  (11,11,549,545,2,"unknown")));
                             r.callback.onCellInfoChanged
                                 (new ArrayList<CellInfo>(Arrays.asList(fakeCellInfo)));
-                            Log.i(P_TAG,"package: " + r.pkgForDebug 
+                            PrivacyDebugger.i(P_TAG,"package: " + r.pkgForDebug 
                                 + " blocked for Cellinfo");
                         }
                         else{
                             r.callback.onCellInfoChanged(cellInfo);
-                            Log.i(P_TAG,"package: " + r.pkgForDebug 
+                            PrivacyDebugger.i(P_TAG,"package: " + r.pkgForDebug 
                                 + " allowed for Cellinfo");
                         }
                     } catch (RemoteException ex) {
@@ -421,12 +424,12 @@ private static final int PERMISSION_SERVICE_STATE = 4;
                                 tmp.fillInNotifierBundle(output);
                             }
                             r.callback.onCellLocationChanged(new Bundle(output));
-                            Log.i(P_TAG,"package: " + r.pkgForDebug
+                            PrivacyDebugger.i(P_TAG,"package: " + r.pkgForDebug
                                 + " blocked for CellLocation");
                         }
                         else{
                             r.callback.onCellLocationChanged(new Bundle(cellLocation));
-                            Log.i(P_TAG,"package: " + r.pkgForDebug
+                            PrivacyDebugger.i(P_TAG,"package: " + r.pkgForDebug
                                 + " allowed for CellLocation");
                         }
                     } catch (RemoteException ex) {

@@ -25,6 +25,7 @@ import android.provider.Browser;
 import android.provider.CalendarContract;
 import android.provider.CallLog;
 import android.provider.ContactsContract;
+import android.privacy.utilities.PrivacyDebugger;
 import android.util.Log;
 
 /**
@@ -92,7 +93,9 @@ public final class PrivacyContentResolver {
                         output = new PrivacyCursor();
                         pSetMan.notification(packageName, PrivacySettings.ERROR, PrivacySettings.DATA_CONTACTS, null);
                     } catch (NullPointerException e) {
-                        Log.e(TAG, "PrivacyContentResolver:enforcePrivacyPermissions: NullPointerException occurred, probably privacy service", e);
+                        PrivacyDebugger.e(TAG, "PrivacyContentResolver:"
+                            + "enforcePrivacyPermissions: NullPointerException occurred, "
+                            + "probably privacy service", e);
                         output_label = "[empty]";
                         output = new PrivacyCursor();
                     }
@@ -113,7 +116,9 @@ public final class PrivacyContentResolver {
                         output = new PrivacyCursor();
                         pSetMan.notification(packageName, PrivacySettings.ERROR, PrivacySettings.DATA_CALENDAR, null);
                     } catch (NullPointerException e) {
-                        Log.e(TAG, "PrivacyContentResolver:enforcePrivacyPermissions: NullPointerException occurred, probably privacy service", e);
+                        PrivacyDebugger.e(TAG, "PrivacyContentResolver:"
+                            + "enforcePrivacyPermissions: NullPointerException occurred, "
+                            + "probably privacy service", e);
                         output_label = "[empty]";
                         output = new PrivacyCursor();
                     }
@@ -135,7 +140,9 @@ public final class PrivacyContentResolver {
                         output = new PrivacyCursor();
                         pSetMan.notification(packageName, PrivacySettings.ERROR, PrivacySettings.DATA_MMS, null);
                     } catch (NullPointerException e) {
-                        Log.e(TAG, "PrivacyContentResolver:enforcePrivacyPermissions: NullPointerException occurred, probably privacy service", e);
+                        PrivacyDebugger.e(TAG, "PrivacyContentResolver:"
+                            + "enforcePrivacyPermissions: NullPointerException occurred, "
+                            + "probably privacy service", e);
                         output_label = "[empty]";
                         output = new PrivacyCursor();
                     }
@@ -157,7 +164,9 @@ public final class PrivacyContentResolver {
                         output = new PrivacyCursor();
                         pSetMan.notification(packageName, PrivacySettings.ERROR, PrivacySettings.DATA_SMS, null);
                     } catch (NullPointerException e) {
-                        Log.e(TAG, "PrivacyContentResolver:enforcePrivacyPermissions: NullPointerException occurred, probably privacy service", e);
+                        PrivacyDebugger.e(TAG, "PrivacyContentResolver:"
+                            + "enforcePrivacyPermissions: NullPointerException occurred, "
+                            + "probably privacy service", e);
                         output_label = "[empty]";
                         output = new PrivacyCursor();
                     }
@@ -182,7 +191,9 @@ public final class PrivacyContentResolver {
                         output = new PrivacyCursor();
                         pSetMan.notification(packageName, PrivacySettings.ERROR, PrivacySettings.DATA_MMS_SMS, null);
                     } catch (NullPointerException e) {
-                        Log.e(TAG, "PrivacyContentResolver:enforcePrivacyPermissions: NullPointerException occurred, probably privacy service", e);
+                        PrivacyDebugger.e(TAG, "PrivacyContentResolver:"
+                            + "enforcePrivacyPermissions: NullPointerException occurred, "
+                            + "probably privacy service", e);
                         output_label = "[empty]";
                         output = new PrivacyCursor();
                     }
@@ -203,7 +214,9 @@ public final class PrivacyContentResolver {
                         output = new PrivacyCursor();
                         pSetMan.notification(packageName, PrivacySettings.ERROR, PrivacySettings.DATA_CALL_LOG, null);
                     } catch (NullPointerException e) {
-                        Log.e(TAG, "PrivacyContentResolver:enforcePrivacyPermissions: NullPointerException occurred, probably privacy service", e);
+                        PrivacyDebugger.e(TAG, "PrivacyContentResolver:"
+                            + "enforcePrivacyPermissions: NullPointerException occurred, "
+                            + "probably privacy service", e);
                         output_label = "[empty]";
                         output = new PrivacyCursor();
                     }
@@ -225,7 +238,9 @@ public final class PrivacyContentResolver {
                         output = new PrivacyCursor();
                         pSetMan.notification(packageName, PrivacySettings.ERROR, PrivacySettings.DATA_BOOKMARKS, null);
                     } catch (NullPointerException e) {
-                        Log.e(TAG, "PrivacyContentResolver:enforcePrivacyPermissions: NullPointerException occurred, probably privacy service", e);
+                        PrivacyDebugger.e(TAG, "PrivacyContentResolver:"
+                            + "enforcePrivacyPermissions: NullPointerException occurred, "
+                            + "probably privacy service", e);
                         output_label = "[empty]";
                         output = new PrivacyCursor();
                     }
@@ -260,7 +275,8 @@ public final class PrivacyContentResolver {
                 String packageName = context.getPackageName();
                 if (pSetMan == null) pSetMan = PrivacySettingsManager.getPrivacyService(context);
                 if (pSetMan == null) {
-                    Log.e(TAG,"PrivacyContentResolver:enforcePrivacyPermission: privacy service could not be obtained");
+                    PrivacyDebugger.e(TAG,"PrivacyContentResolver:"
+                        + "enforcePrivacyPermission: privacy service could not be obtained");
                 } else {
                     try {
                         PrivacySettings pSet = pSetMan.getSettings(packageName);
@@ -272,13 +288,15 @@ public final class PrivacyContentResolver {
                     } catch (PrivacyServiceException e) {
                         privacyAllowed = false;
                     } catch (NullPointerException e) {
-                        Log.e(TAG, "PrivacyContentResolver:enforcePrivacyPermissions: NullPointerException occurred, probably privacy service", e);
+                        PrivacyDebugger.e(TAG, "PrivacyContentResolver:"
+                            + "enforcePrivacyPermissions: NullPointerException occurred, "
+                            + "probably privacy service", e);
                         privacyAllowed = false;
                     }
                 }
                 
                 if (privacyAllowed) {
-                    Log.i(TAG,"google is allowed to get real cursor");
+                    PrivacyDebugger.i(TAG,"google is allowed to get real cursor");
                     pSetMan.notification(packageName, PrivacySettings.REAL, PrivacySettings.DATA_NETWORK_INFO_SIM, null);
                 } else {
                     int actual_pos = realCursor.getPosition();
@@ -292,12 +310,16 @@ public final class PrivacyContentResolver {
                             }
                         }
                     } catch (Exception e){
-                        Log.e(TAG,"something went wrong while getting blocked permission for android id");
+                        PrivacyDebugger.e(TAG,"something went wrong while getting blocked "
+                            + "permission for android id");
                     } finally{
                         realCursor.moveToPosition(actual_pos);
-                        if(forbidden_position == -1) {Log.i(TAG,"now we return real cursor, because forbidden_pos is -1"); return output;} //give realcursor, because there is no android_id to block
+                        if(forbidden_position == -1) {PrivacyDebugger.i(TAG,
+                            "now we return real cursor, because forbidden_pos is -1"); 
+                            return output;} //give realcursor, there's no android_id to block
                     }
-                    Log.i(TAG,"now blocking google access to android id and give fake cursor. forbidden_position: " + forbidden_position);
+                    PrivacyDebugger.i(TAG,"now blocking google access to android id and "
+                        + "give fake cursor. forbidden_position: " + forbidden_position);
                     output_label = "[fake]";
                     output = new PrivacyCursor(realCursor,forbidden_position);
                     pSetMan.notification(packageName, PrivacySettings.EMPTY, PrivacySettings.DATA_NETWORK_INFO_SIM, null);

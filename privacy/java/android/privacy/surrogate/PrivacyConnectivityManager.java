@@ -25,6 +25,7 @@ import android.privacy.IPrivacySettingsManager;
 import android.privacy.PrivacyServiceException;
 import android.privacy.PrivacySettings;
 import android.privacy.PrivacySettingsManager;
+import android.privacy.utilities.PrivacyDebugger;
 import android.util.Log;
 
 /**
@@ -46,7 +47,8 @@ public class PrivacyConnectivityManager extends ConnectivityManager{
         this.context = context;
         pSetMan = new PrivacySettingsManager(context, 
             IPrivacySettingsManager.Stub.asInterface(ServiceManager.getService("privacy")));
-        Log.i(P_TAG,"now in constructor for package: " + context.getPackageName());
+        PrivacyDebugger.i(P_TAG,"now in constructor for package: "
+            + context.getPackageName());
     }
 
     @Override
@@ -73,7 +75,8 @@ public class PrivacyConnectivityManager extends ConnectivityManager{
                 return super.getMobileDataEnabled();
             }
         } catch (PrivacyServiceException e) {
-            Log.e(P_TAG, "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
+            PrivacyDebugger.e(P_TAG,
+                "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
             pSetMan.notification(context.getPackageName(), PrivacySettings.ERROR, 
                 PrivacySettings.DATA_NETWORK_INFO_CURRENT, null);
             return true;
@@ -97,7 +100,8 @@ public class PrivacyConnectivityManager extends ConnectivityManager{
                 //do nothing
             }
         } catch (PrivacyServiceException e) {
-            Log.e(P_TAG, "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
+            PrivacyDebugger.e(P_TAG,
+                "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
             pSetMan.notification(context.getPackageName(), PrivacySettings.ERROR, 
                 PrivacySettings.DATA_SWITCH_CONNECTIVITY, null);
         }
@@ -128,7 +132,8 @@ public class PrivacyConnectivityManager extends ConnectivityManager{
                 return output;
             }
         } catch (PrivacyServiceException e) {
-            Log.e(P_TAG, "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
+            PrivacyDebugger.e(P_TAG,
+                "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
             pSetMan.notification(context.getPackageName(), PrivacySettings.ERROR,
                 PrivacySettings.DATA_NETWORK_INFO_CURRENT, null);
             return output;
@@ -159,7 +164,8 @@ public class PrivacyConnectivityManager extends ConnectivityManager{
                 return output;
             }
         } catch (PrivacyServiceException e) {
-            Log.e(P_TAG, "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
+            PrivacyDebugger.e(P_TAG,
+                "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
             pSetMan.notification(context.getPackageName(), PrivacySettings.EMPTY,
                 PrivacySettings.DATA_NETWORK_INFO_CURRENT, null);  
             return output;        
@@ -193,7 +199,8 @@ public class PrivacyConnectivityManager extends ConnectivityManager{
                 return output;
             }
         } catch (PrivacyServiceException e) {
-            Log.e(P_TAG, "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
+            PrivacyDebugger.e(P_TAG,
+                "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
             pSetMan.notification(context.getPackageName(), PrivacySettings.EMPTY, 
                 PrivacySettings.DATA_NETWORK_INFO_CURRENT, null);
             return output;
@@ -224,7 +231,8 @@ public class PrivacyConnectivityManager extends ConnectivityManager{
                 return output;
             }
         } catch (PrivacyServiceException e) {
-            Log.e(P_TAG, "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
+            PrivacyDebugger.e(P_TAG,
+                "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
             pSetMan.notification(context.getPackageName(), PrivacySettings.ERROR,
                 PrivacySettings.DATA_NETWORK_INFO_CURRENT, null);
             return output;
@@ -251,7 +259,8 @@ public class PrivacyConnectivityManager extends ConnectivityManager{
                 return output;
             }
         } catch (PrivacyServiceException e) {
-            Log.e(P_TAG, "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
+            PrivacyDebugger.e(P_TAG,
+                "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
             pSetMan.notification(context.getPackageName(), PrivacySettings.EMPTY,
                 PrivacySettings.DATA_NETWORK_INFO_CURRENT, null);
             return output;
@@ -275,7 +284,8 @@ public class PrivacyConnectivityManager extends ConnectivityManager{
                 return output;
             }
         } catch (PrivacyServiceException e) {
-            Log.e(P_TAG, "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
+            PrivacyDebugger.e(P_TAG,
+                "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
             pSetMan.notification(context.getPackageName(), PrivacySettings.EMPTY,
                 PrivacySettings.DATA_NETWORK_INFO_CURRENT, null);
             return output;
@@ -302,7 +312,8 @@ public class PrivacyConnectivityManager extends ConnectivityManager{
                 return false;
             }
         } catch (PrivacyServiceException e) {
-            Log.e(P_TAG, "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
+            PrivacyDebugger.e(P_TAG,
+                "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
             pSetMan.notification(context.getPackageName(), PrivacySettings.ERROR,
                 PrivacySettings.DATA_NETWORK_INFO_CURRENT, null);
             return true;
@@ -330,7 +341,7 @@ public class PrivacyConnectivityManager extends ConnectivityManager{
                 return false;
         }
         } catch (PrivacyServiceException e) {
-            Log.e(P_TAG, "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
+            PrivacyDebugger.e(P_TAG, "PrivacyConnectivityManager: PrivacyServiceException occurred", e);
             pSetMan.notification(context.getPackageName(), PrivacySettings.ERROR,
                 PrivacySettings.DATA_NETWORK_INFO_CURRENT, null);
             return true;

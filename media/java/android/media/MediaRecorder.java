@@ -16,17 +16,6 @@
 
 package android.media;
 
-import android.hardware.Camera;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.util.Log;
-import android.view.Surface;
-import java.io.FileDescriptor;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.ref.WeakReference;
-
 ///////////////////////////////////////////
 //BEGIN PRIVACY 
 
@@ -44,9 +33,22 @@ import android.privacy.IPrivacySettingsManager;
 import android.privacy.PrivacyServiceException;
 import android.privacy.PrivacySettings;
 import android.privacy.PrivacySettingsManager;
+import android.privacy.utilities.PrivacyDebugger;
 
 //END PRIVACY 
 ///////////////////////////////////////////
+
+
+import android.hardware.Camera;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.util.Log;
+import android.view.Surface;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
 
 /**
  * Used to record audio and video. The recording control is based on a
@@ -115,8 +117,8 @@ public class MediaRecorder
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //BEGIN PRIVACY 
     
-    /** default value of privacy path. You have to add the package name at the end to write file in
-     *directory of the app itself
+    /** default value of privacy path. You have to add the package name at the end to write 
+     * file in directory of the app itself
      */
     private static final String PRIVACY_PATH_DEF = "/data/data/";
     
@@ -252,7 +254,8 @@ public class MediaRecorder
         try {
             stop();
         } catch(Exception e) {
-            Log.e(PRIVACY_TAG,"Got exception while trying to call privacyStop()");
+            PrivacyDebugger.e(PRIVACY_TAG,
+                    "Got exception while trying to call privacyStop()");
         }
     }
     
@@ -282,7 +285,8 @@ public class MediaRecorder
                 fWriter.close();
                 deleteMe = new File(PRIVACY_PATH_DEF + packages[i] + "/cache/" + data_name);
                 deleteMe.delete();
-                Log.i(PRIVACY_TAG,"found our package: " + packages[i] + " with internal path. File: "
+                PrivacyDebugger.i(PRIVACY_TAG,
+                        "found our package: " + packages[i] + " with internal path. File: "
                         + data_name);
                 //all is fine, break now and save our current package name!
                 current_package = packages[i];
@@ -296,7 +300,8 @@ public class MediaRecorder
             }
         }
         if(current_package != null) {
-            Log.i(PRIVACY_TAG,"returned file: " + data_name + " for package: " + current_package 
+            PrivacyDebugger.i(PRIVACY_TAG,
+                    "returned file: " + data_name + " for package: " + current_package 
                     + " with internal path. Path: " + PRIVACY_PATH_DEF + current_package
                     + "/cache/" + data_name);
             return PRIVACY_PATH_DEF + current_package + "/cache/" + data_name;
@@ -309,7 +314,8 @@ public class MediaRecorder
                 fWriter.close();
                 deleteMe = new File(sdPath + "/" + data_name);
                 deleteMe.delete();
-                Log.i(PRIVACY_TAG,"Return filePath:  " + sdPath + "/" + data_name 
+                PrivacyDebugger.i(PRIVACY_TAG,
+                        "Return filePath:  " + sdPath + "/" + data_name 
                         + " . It is on SDCard!");
                 return sdPath + "/" + data_name;
             } catch(Exception e) {
@@ -344,7 +350,7 @@ public class MediaRecorder
                 fWriter.close();
                 deleteMe = new File(PRIVACY_PATH_DEF + packages[i] + "/cache/" + data_name);
                 deleteMe.delete();
-                Log.i(PRIVACY_TAG,"found our package: " + packages[i] 
+                PrivacyDebugger.i(PRIVACY_TAG,"found our package: " + packages[i] 
                         + " with internal path. File: " + data_name);
                 //all is fine, break now and save our current package name!
                 current_package = packages[i];
@@ -363,12 +369,14 @@ public class MediaRecorder
                         + "/cache/" + data_name);
                 FileDescriptor fD = fos.getFD();
                 pFileDescriptorPath = PRIVACY_PATH_DEF + current_package + "/cache/" + data_name;
-                Log.i(PRIVACY_TAG,"returned fileDescriptor for package: " + current_package 
+                PrivacyDebugger.i(PRIVACY_TAG,
+                        "returned fileDescriptor for package: " + current_package 
                         + " with internal path. Path: " + PRIVACY_PATH_DEF + current_package 
                         + "/cache/" + data_name);
                 return fD;
             } catch(Exception e) {
-                Log.e(PRIVACY_TAG,"Got exception while creating fileDescriptor -> return null");
+                PrivacyDebugger.e(PRIVACY_TAG,
+                        "Got exception while creating fileDescriptor -> return null");
                 return null;
             }
         } else { //last chance, try to write to SD-Card
@@ -383,7 +391,8 @@ public class MediaRecorder
                 FileOutputStream fos = new  FileOutputStream(sdPath + "/" + data_name);
                 FileDescriptor fD = fos.getFD();
                 pFileDescriptorPath = sdPath + "/" + data_name;
-                Log.i(PRIVACY_TAG,"Returned FileDescriptor. Path:  " + sdPath + "/" + data_name 
+                PrivacyDebugger.i(PRIVACY_TAG,
+                        "Returned FileDescriptor. Path:  " + sdPath + "/" + data_name 
                         + " . It is on SDCard!");
                 return fD;
             } catch(Exception e) {
@@ -415,7 +424,8 @@ public class MediaRecorder
             }
         } catch(Exception e) {
             e.printStackTrace();
-            Log.e(PRIVACY_TAG,"something went wrong with getting package name");
+            PrivacyDebugger.e(PRIVACY_TAG,
+                    "something went wrong with getting package name");
             return null;
         }
     }
@@ -434,7 +444,7 @@ public class MediaRecorder
             String[] package_names = getPackageName();
             
             if (package_names == null) {
-                Log.e(PRIVACY_TAG,"MediaRecorder:checkIfPackagesAllowed: "
+                PrivacyDebugger.e(PRIVACY_TAG,"MediaRecorder:checkIfPackagesAllowed: "
                         + "return GOT_ERROR, because package_names are NULL");
                 return GOT_ERROR;
             }
@@ -451,7 +461,8 @@ public class MediaRecorder
                         pSet = null;
                     }
                 } catch(PrivacyServiceException e) {
-                    Log.e(PRIVACY_TAG,"MediaRecorder:checkIfPackagesAllowed:return GOT_ERROR, "
+                    PrivacyDebugger.e(PRIVACY_TAG,
+                            "MediaRecorder:checkIfPackagesAllowed:return GOT_ERROR, "
                             + "because PrivacyServiceException occurred");
                     return GOT_ERROR;
                 }
@@ -469,7 +480,8 @@ public class MediaRecorder
                         pSet = null;
                     }
                 } catch(PrivacyServiceException e) {
-                    Log.e(PRIVACY_TAG,"MediaRecorder:checkIfPackagesAllowed:return GOT_ERROR, "
+                    PrivacyDebugger.e(PRIVACY_TAG,
+                            "MediaRecorder:checkIfPackagesAllowed:return GOT_ERROR, "
                             + because PrivacyServiceException occurred");
                     return GOT_ERROR;
                 }
@@ -478,7 +490,7 @@ public class MediaRecorder
                 return GOT_ERROR;
             }
         } catch(Exception e) {
-            Log.e(PRIVACY_TAG,"Camera:checkIfPackagesAllowed: "
+            PrivacyDebugger.e(PRIVACY_TAG,"Camera:checkIfPackagesAllowed: "
                     + "Got exception in checkIfPackagesAllowed", e);
             return GOT_ERROR;
         }
@@ -501,7 +513,7 @@ public class MediaRecorder
                 privacyMode = true;
         } catch(Exception e) {
             e.printStackTrace();
-            Log.e(PRIVACY_TAG, "Something went wrong with initalize variables");
+            PrivacyDebugger.e(PRIVACY_TAG, "Something went wrong with initalize variables");
             privacyMode = false;
         }
     }
@@ -516,12 +528,14 @@ public class MediaRecorder
             switch(micOrBoth) {
                 case MIC_DATA_ACCESS:
                     for (int i=0;i<package_names.length;i++)
-                        Log.i(PRIVACY_TAG,"Allowed Package: -" + package_names[i] 
+                        PrivacyDebugger.i(PRIVACY_TAG,
+                                "Allowed Package: -" + package_names[i] 
                                 + "- accessing microphone.");
                     break;
                 case BOTH_DATA_ACCESS:
                     for (int i=0;i<package_names.length;i++)
-                        Log.i(PRIVACY_TAG,"Allowed Package: -" + package_names[i]
+                        PrivacyDebugger.i(PRIVACY_TAG,
+                                "Allowed Package: -" + package_names[i]
                                 + "- accessing microphone and camera.");
                     break;
             }
@@ -529,12 +543,14 @@ public class MediaRecorder
             switch(micOrBoth) {
                 case MIC_DATA_ACCESS:
                     for (int i=0;i<package_names.length;i++)
-                        Log.i(PRIVACY_TAG,"Blocked Package: -" + package_names[i] 
+                        PrivacyDebugger.i(PRIVACY_TAG,
+                                "Blocked Package: -" + package_names[i] 
                                 + "- accessing microphone.");
                     break;
                 case BOTH_DATA_ACCESS:
                     for (int i=0;i<package_names.length;i++)
-                        Log.i(PRIVACY_TAG,"Blocked Package: -" + package_names[i] 
+                        PrivacyDebugger.i(PRIVACY_TAG,
+                                "Blocked Package: -" + package_names[i] 
                                 + "- accessing microphone and camera.");
                     break;
             }
@@ -1118,9 +1134,11 @@ public class MediaRecorder
                     pRunner.setDelay(50); // try very low value
                     pRunner.start();
                     skip = true;
-    //                if (x != null) Log.i(PRIVACY_TAG,"now throw exception in prepare method for "
+    //                if (x != null) PrivacyDebugger.i(PRIVACY_TAG,
+    //                 "now throw exception in prepare method for "
     //                        + "package: " + x[0]);
-    //                else Log.i(PRIVACY_TAG,"now throw exception in prepare method");
+    //                else PrivacyDebugger.i(PRIVACY_TAG,
+    //                        "now throw exception in prepare method");
     //                if (ACTUAL_STATE == STATE_RECORD_BOTH) {
     //                    dataAccess(false, BOTH_DATA_ACCESS);
     //                    if (x != null)
@@ -1247,7 +1265,8 @@ public class MediaRecorder
                 if (tmp.delete())
                     deletedFile = true;
             } else {
-                Log.e(PRIVACY_TAG,"Can't delete temporary File, because all is null?! "
+                PrivacyDebugger.e(PRIVACY_TAG,
+                        "Can't delete temporary File, because all is null?! "
                         + "It could be that we only want to record audio?!");
                 deletedFile = false;
             }
@@ -1548,7 +1567,8 @@ public class MediaRecorder
                 if (tmp.delete())
                     deletedFile = true;
             } else {
-                Log.e(PRIVACY_TAG,"Can't delete temporary File, because all is null?! "
+                PrivacyDebugger.e(PRIVACY_TAG,
+                        "Can't delete temporary File, because all is null?! "
                         + "It could be that we only want to record audio?!");
                 deletedFile = false;
             }
@@ -1597,12 +1617,14 @@ public class MediaRecorder
                     if (tmp.delete())
                         deletedFile = true;
                 } else {
-                    Log.e(PRIVACY_TAG,"Can't delete temporary File, because all is null?! "
+                    PrivacyDebugger.e(PRIVACY_TAG,
+                            "Can't delete temporary File, because all is null?! "
                             + "It could be that we only want to record audio?!");
                     deletedFile = false;
                 }
             } catch(Exception e) {
-                Log.e(PRIVACY_TAG,"Something went wrong while waiting for cancel the stream!");
+                PrivacyDebugger.e(PRIVACY_TAG,
+                        "Something went wrong while waiting for cancel the stream!");
                 e.printStackTrace();
             } finally {
                 privacyStop();
