@@ -23,6 +23,7 @@ import com.android.internal.telephony.IPhoneStateListener;
 import android.privacy.PrivacyServiceException;
 import android.privacy.PrivacySettings;
 import android.privacy.PrivacySettingsManager;
+import android.privacy.utilities.PrivacyDebugger;
 import android.content.Context;
 
 // END PRIVACY
@@ -388,7 +389,7 @@ public class PhoneStateListener {
             // BEGIN PRIVACY
             // Message.obtain(mHandler, LISTEN_CALL_STATE, 
             //     state, 0,incomingNumber).sendToTarget();
-            //  Log.d(TAG, "onCallStateChanged - state:" + state
+            //  PrivacyDebugger.d(TAG, "onCallStateChanged - state:" + state
             //      + " incoming number:" + incomingNumber);
             // **SM: need to check this: I'm not sure that the appropriate behaviour 
             //      for no context is to allow 
@@ -403,7 +404,7 @@ public class PhoneStateListener {
                             PrivacySettings.REAL) {
                         Message.obtain(mHandler, LISTEN_CALL_STATE, 
                             state, 0, output).sendToTarget();
-                        //  Log.d(TAG, "onCallStateChanged BLOCK - package:"
+                        //  PrivacyDebugger.d(TAG, "onCallStateChanged BLOCK - package:"
                         //      + packageName + " uid:" + uid + " state:" + state
                         //      + " output: " + output);
                         pSetMan.notification(packageName, PrivacySettings.EMPTY, 
@@ -411,7 +412,7 @@ public class PhoneStateListener {
                     } else {
                         Message.obtain(mHandler, LISTEN_CALL_STATE, 
                             state, 0, incomingNumber).sendToTarget();
-                        //  Log.d(TAG, "onCallStateChanged REAL 1 - package:"
+                        //  PrivacyDebugger.d(TAG, "onCallStateChanged REAL 1 - package:"
                         //      + packageName + " uid:" + uid + " state:" + state
                         //      + " output: " + incomingNumber);
                         pSetMan.notification(packageName, PrivacySettings.REAL,
@@ -424,7 +425,7 @@ public class PhoneStateListener {
                         PrivacySettings.DATA_INCOMING_CALL, output);
                 }
             } else {
-                //  Log.d(TAG, "onCallStateChanged REAL 2 - package:" 
+                //  PrivacyDebugger.d(TAG, "onCallStateChanged REAL 2 - package:" 
                 //      + packageName + " uid:" + uid + " state:" + state 
                 //      + " output: " + incomingNumber);
                 Message.obtain(mHandler, LISTEN_CALL_STATE, 

@@ -13,6 +13,7 @@
 package android.privacy;
 
 import android.os.FileObserver;
+import android.privacy.utilities.PrivacyDebugger;
 import android.util.Log;
 
 import java.io.File;
@@ -57,7 +58,7 @@ public final class PrivacyFileObserver extends FileObserver {
     @Override
     public void onEvent(int event, String path) {
         if ((FileObserver.ACCESS & event) != 0) { // data was read from a file
-        // Log.d(TAG, "onEvent - file accessed: " + absolutePath);
+        // PrivacyDebugger.d(TAG, "onEvent - file accessed: " + absolutePath);
             StringTokenizer tokenizer = new StringTokenizer(absolutePath, "/");
             for (int i = 0; i < PACKAGE_PATH_INDEX
                     && tokenizer.hasMoreElements(); i++) {
@@ -73,7 +74,7 @@ public final class PrivacyFileObserver extends FileObserver {
             // try {
             // uid = Integer.parseInt(tokenizer.nextToken());
             // } catch (NumberFormatException e) {
-            // Log.e(TAG,
+            // PrivacyDebugger.e(TAG,
             // "onEvent - could not get the UID of accessing application", e);
             // // we still can continue, UID is optional here
             // }
@@ -112,13 +113,13 @@ public final class PrivacyFileObserver extends FileObserver {
 
     @Override
     public void startWatching() {
-        // Log.d("PrivacyFileObserver",
+        // PrivacyDebugger.d("PrivacyFileObserver",
         // "PrivacyFileObserver - observing directory: " + absolutePath);
         super.startWatching();
     }
 
     // public void verifyObserver() {
-    // Log.d(TAG, "verifyObservers - observer path: " + absolutePath);
+    // PrivacyDebugger.d(TAG, "verifyObservers - observer path: " + absolutePath);
     // for (PrivacyFileObserver obs : children.values()) obs.verifyObserver();
     // }
 

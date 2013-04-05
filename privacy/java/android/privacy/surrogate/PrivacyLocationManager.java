@@ -28,6 +28,7 @@ import android.privacy.IPrivacySettingsManager;
 import android.privacy.PrivacyServiceException;
 import android.privacy.PrivacySettings;
 import android.privacy.PrivacySettingsManager;
+import android.privacy.utilities.PrivacyDebugger;
 import android.util.Log;
 
 /**
@@ -74,7 +75,8 @@ public final class PrivacyLocationManager extends LocationManager {
             pSetMan.notification(packageName, PrivacySettings.ERROR, PrivacySettings.DATA_LOCATION_GPS, null);
             return false;
         } catch (NullPointerException e) {
-            Log.e(TAG, "PrivacyLocationManager:addNmeaListener: NullPointerException: probably privacy service", e);
+            PrivacyDebugger.e(TAG, "PrivacyLocationManager:addNmeaListener: "
+            + "NullPointerException: probably privacy service", e);
             return false;
         }
         
@@ -190,7 +192,7 @@ public final class PrivacyLocationManager extends LocationManager {
                     PrivacySettings.DATA_LOCATION_GPS, null);
             }
         } catch (NullPointerException e) {
-            Log.e(TAG, "PrivacyLocationManager:getLastKnownLocationString: "
+            PrivacyDebugger.e(TAG, "PrivacyLocationManager:getLastKnownLocationString: "
                 + "NullPointerException: probably privacy service", e);
         }
         return output;
@@ -235,8 +237,8 @@ public final class PrivacyLocationManager extends LocationManager {
             }
         } catch (PrivacyServiceException e) {
         } catch (NullPointerException e) {
-            Log.e(TAG, "PrivacyLocationManager:getProvider: NullPointerException: "
-                + "probably privacy service", e);
+            PrivacyDebugger.e(TAG, "PrivacyLocationManager:getProvider: "
+                + "NullPointerException: probably privacy service", e);
         }
         return output;
     }
@@ -287,8 +289,8 @@ public final class PrivacyLocationManager extends LocationManager {
         } catch (PrivacyServiceException e) {
             output = false;
         } catch (NullPointerException e) {
-            Log.e(TAG, "PrivacyLocationManager:inProviderEnabled: NullPointerException: "
-                + "probably privacy service", e);
+            PrivacyDebugger.e(TAG, "PrivacyLocationManager:inProviderEnabled: 
+                + "NullPointerException: probably privacy service", e);
             output = false;
         }
         return output;
@@ -392,11 +394,12 @@ public final class PrivacyLocationManager extends LocationManager {
     /**
      * Monitoring purposes only
      */
-//    @Override
-//    public boolean sendExtraCommand(String provider, String command, Bundle extras) {
-//        Log.d(TAG, "sendExtraCommand - " + context.getPackageName() + " (" + Binder.getCallingUid() + ")");
-//        return super.sendExtraCommand(provider, command, extras);
-//    }
+    //    @Override
+    //    public boolean sendExtraCommand(String provider, String command, Bundle extras) {
+    //        PrivacyDebugger.d(TAG, "sendExtraCommand - " 
+    //            + context.getPackageName() + " (" + Binder.getCallingUid() + ")");
+    //        return super.sendExtraCommand(provider, command, extras);
+    //    }
 
     /**
      * Handles calls to requestLocationUpdates and requestSingleUpdate methods
@@ -432,7 +435,7 @@ public final class PrivacyLocationManager extends LocationManager {
                                                 (pSet.getLocationGpsLon())).start();
                                         output = true;
                                     } catch (NumberFormatException e) {
-                                        Log.e(TAG, 
+                                        PrivacyDebugger.e(TAG, 
                                             "requestLocationUpdates: invalid coordinates");
                                         output = true;
                                     }
@@ -448,7 +451,8 @@ public final class PrivacyLocationManager extends LocationManager {
                                         Double.parseDouble(pSet.getLocationGpsLon())).start();
                                         output = true;
                                     } catch (NumberFormatException e) {
-                                    Log.e(TAG, "requestLocationUpdates: invalid coordinates");
+                                    PrivacyDebugger.e(TAG, 
+                                        "requestLocationUpdates: invalid coordinates");
                                     output = true;
                                     }
                                     pSetMan.notification(packageName, PrivacySettings.RANDOM, 
@@ -477,7 +481,7 @@ public final class PrivacyLocationManager extends LocationManager {
                                         pSet.getLocationNetworkLon())).start();
                                         output = true;
                                     } catch (NumberFormatException e) {
-                                        Log.e(TAG, 
+                                        PrivacyDebugger.e(TAG, 
                                             "requestLocationUpdates: invalid coordinates");
                                         output = true;
                                     }
@@ -494,7 +498,7 @@ public final class PrivacyLocationManager extends LocationManager {
                                             pSet.getLocationNetworkLon())).start();
                                         output = true;
                                     } catch (NumberFormatException e) {
-                                        Log.e(TAG, 
+                                        PrivacyDebugger.e(TAG, 
                                             "requestLocationUpdates: invalid coordinates");
                                         output = true;
                                     }
@@ -536,7 +540,7 @@ public final class PrivacyLocationManager extends LocationManager {
                         PrivacySettings.DATA_LOCATION_GPS, null);
                     }
                 } catch (NullPointerException e) {
-                    Log.e(TAG, "PrivacyLocationManager:requestLocationUpdates:"
+                    PrivacyDebugger.e(TAG, "PrivacyLocationManager:requestLocationUpdates:"
                         + "NullPointerException: probably privacy service", e);
                     output = false;
                 }

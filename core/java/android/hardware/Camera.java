@@ -19,24 +19,24 @@ package android.hardware;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //BEGIN PRIVACY 
 
+import android.content.Context;
+import android.content.pm.IPackageManager;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Process;
+import android.os.ServiceManager;
+
 import android.privacy.IPrivacySettingsManager;
 import android.privacy.PrivacyServiceException;
 import android.privacy.PrivacySettings;
 import android.privacy.PrivacySettingsManager;
-
-import android.content.Context;
-import android.content.pm.IPackageManager;
-import android.content.pm.PackageManager;
-
-import android.os.Process;
-import android.os.ServiceManager;
-import java.util.Random;
+import android.privacy.utilities.PrivacyDebugger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import java.util.Random;
 
 //END PRIVACY 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -231,7 +231,7 @@ public class Camera {
             }
         } catch(Exception e) {
             e.printStackTrace();
-            Log.e(PRIVACY_TAG,"something went wrong with getting package name");
+            PrivacyDebugger.e(PRIVACY_TAG,"something went wrong with getting package name");
             return null;
         }
     }
@@ -253,7 +253,7 @@ public class Camera {
                 bm.compress(Bitmap.CompressFormat.JPEG, 100 , helper);    
             return helper.toByteArray();
         } catch (Exception e) {
-            Log.e(PRIVACY_TAG,"something went wrong with getting the picture!");
+            PrivacyDebugger.e(PRIVACY_TAG,"something went wrong with getting the picture!");
             e.printStackTrace();
             return null;
         }
@@ -273,7 +273,7 @@ public class Camera {
                 privacyMode = true;
         } catch(Exception e) {
             e.printStackTrace();
-            Log.e(PRIVACY_TAG, "Something went wrong with initalize variables");
+            PrivacyDebugger.e(PRIVACY_TAG, "Something went wrong with initalize variables");
             privacyMode = false;
         }
     }
@@ -290,7 +290,7 @@ public class Camera {
             if (pSetMan == null) pSetMan = PrivacySettingsManager.getPrivacyService();
             String[] package_names = getPackageName();
             if (package_names == null) {
-                Log.e(PRIVACY_TAG,"Camera:checkIfPackagesAllowed: "
+                PrivacyDebugger.e(PRIVACY_TAG,"Camera:checkIfPackagesAllowed: "
                         + "return GOT_ERROR, because package_names are NULL");
                 return GOT_ERROR;
             }
@@ -305,13 +305,13 @@ public class Camera {
                     pSet = null;
                 }
             } catch (PrivacyServiceException e) {
-                Log.e(PRIVACY_TAG,"Camera:checkIfPackagesAllowed: "
+                PrivacyDebugger.e(PRIVACY_TAG,"Camera:checkIfPackagesAllowed: "
                         + "return GOT_ERROR, because PrivacyServiceException occurred");
                 return GOT_ERROR;
             }
             return IS_ALLOWED;
         } catch (Exception e) {
-            Log.e(PRIVACY_TAG,"Camera:checkIfPackagesAllowed: "
+            PrivacyDebugger.e(PRIVACY_TAG,"Camera:checkIfPackagesAllowed: "
                     + "Got exception in checkIfPackagesAllowed", e);
             return GOT_ERROR;
         }
@@ -325,10 +325,12 @@ public class Camera {
         String package_names[] = getPackageName();
         if(success && package_names != null) {
             for(int i=0;i<package_names.length;i++)
-                Log.i(PRIVACY_TAG,"Allowed Package: -" + package_names[i] + "- accessing camera.");
+                PrivacyDebugger.i(PRIVACY_TAG,"Allowed Package: -" + package_names[i] 
+                        + "- accessing camera.");
         } else if(package_names != null) {
             for(int i=0;i<package_names.length;i++)
-                Log.i(PRIVACY_TAG,"Blocked Package: -" + package_names[i] + "- accessing camera.");
+                PrivacyDebugger.i(PRIVACY_TAG,"Blocked Package: -" + package_names[i]
+                        + "- accessing camera.");
         }
     }
     //END PRIVACY
@@ -1077,7 +1079,7 @@ public class Camera {
                 return;
 
             default:
-                Log.e(TAG, "Unknown message type " + msg.what);
+                PrivacyDebugger.e(TAG, "Unknown message type " + msg.what);
                 return;
             }
         }
@@ -1338,7 +1340,8 @@ public class Camera {
     if(checkIfPackagesAllowed() != IS_ALLOWED) {
     //  mShutterCallback = null;
         mRawImageCallback = null;
-        Log.i(PRIVACY_TAG,"blocked rawImageCallback -> it will never be called!");
+        PrivacyDebugger.i(PRIVACY_TAG,
+                "blocked rawImageCallback -> it will never be called!");
     //  mPostviewCallback = null;
     //  mJpegCallback = null;
     //  dataAccess(false);
@@ -1486,7 +1489,7 @@ public class Camera {
             try {
                 if (audioService.isCameraSoundForced()) return false;
             } catch (RemoteException e) {
-                Log.e(TAG, "Audio service is unavailable for queries");
+                PrivacyDebugger.e(TAG, "Audio service is unavailable for queries");
             }
         }
         return _enableShutterSound(enabled);

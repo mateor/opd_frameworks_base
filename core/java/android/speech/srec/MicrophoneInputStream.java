@@ -83,7 +83,8 @@ public final class MicrophoneInputStream extends InputStream {
     
     /**
      * {@hide}
-     * @return package names of current process which is using this object or null if something
+     * @return package names of current process which is using this object 
+     * or null if something
      * went wrong
      */
     private String[] getPackageName() {
@@ -100,7 +101,8 @@ public final class MicrophoneInputStream extends InputStream {
             }
         } catch(Exception e) {
             e.printStackTrace();
-            Log.e(PRIVACY_TAG,"something went wrong with getting package name");
+            PrivacyDebugger.e(PRIVACY_TAG,
+                    "something went wrong with getting package name");
             return null;
         }
     }
@@ -119,7 +121,8 @@ public final class MicrophoneInputStream extends InputStream {
             privacyMode = true;
         } catch(Exception e) {
             e.printStackTrace();
-            Log.e(PRIVACY_TAG, "Something went wrong with initalize variables");
+            PrivacyDebugger.e(PRIVACY_TAG, 
+                    "Something went wrong with initalize variables");
             privacyMode = false;
         }
     }
@@ -135,7 +138,8 @@ public final class MicrophoneInputStream extends InputStream {
             if (pSetMan == null) pSetMan = PrivacySettingsManager.getPrivacyService();
             String[] package_names = getPackageName();
             if (package_names == null) {
-                Log.e(PRIVACY_TAG,"MicrophoneInputStream:checkIfPackagesAllowed: return GOT_ERROR, "
+                PrivacyDebugger.e(PRIVACY_TAG,
+                        "MicrophoneInputStream:checkIfPackagesAllowed: return GOT_ERROR, "
                         + "because package_names are NULL");
                 return GOT_ERROR;
             }
@@ -144,19 +148,22 @@ public final class MicrophoneInputStream extends InputStream {
                 for (int i=0;i < package_names.length; i++) {
                     pSet = pSetMan.getSettings(package_names[i]);
                     //if pSet is null, we allow application to access to mic
-                    if (pSet != null && (pSet.getRecordAudioSetting() != PrivacySettings.REAL)) { 
+                    if (pSet != null && (pSet.getRecordAudioSetting()
+                            != PrivacySettings.REAL)) { 
                         return IS_NOT_ALLOWED;
                     }
                     pSet = null;
                 }
             } catch (PrivacyServiceException e) {
-                Log.e(PRIVACY_TAG,"MicrophoneInputStream:checkIfPackagesAllowed:return GOT_ERROR, "
+                PrivacyDebugger.e(PRIVACY_TAG,
+                        "MicrophoneInputStream:checkIfPackagesAllowed:return GOT_ERROR, "
                         + "because PrivacyServiceException occurred");
                 return GOT_ERROR;
             }
             return IS_ALLOWED;
         } catch (Exception e) {
-            Log.e(PRIVACY_TAG,"MicrophoneInputStream:checkIfPackagesAllowed: Got exception in "
+            PrivacyDebugger.e(PRIVACY_TAG,
+                    "MicrophoneInputStream:checkIfPackagesAllowed: Got exception in "
                     + "checkIfPackagesAllowed", e);
             return GOT_ERROR;
         }
@@ -171,11 +178,11 @@ public final class MicrophoneInputStream extends InputStream {
         String package_names[] = getPackageName();
         if (success && package_names != null) {
             for (int i=0;i<package_names.length;i++)
-                Log.i(PRIVACY_TAG,"Allowed Package: -" + package_names[i]
+                PrivacyDebugger.i(PRIVACY_TAG,"Allowed Package: -" + package_names[i]
                         + "- accessing microphone.");
         } else if(package_names != null) {
             for(int i=0;i<package_names.length;i++)
-                Log.i(PRIVACY_TAG,"Blocked Package: -" + package_names[i]
+                PrivacyDebugger.i(PRIVACY_TAG,"Blocked Package: -" + package_names[i]
                         + "- accessing microphone.");
         }
     }

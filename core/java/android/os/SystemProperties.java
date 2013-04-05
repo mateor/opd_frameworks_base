@@ -16,10 +16,6 @@
 
 package android.os;
 
-import java.util.ArrayList;
-
-import android.util.Log;
-
 ///////////////////////////////////////////////////////////////////////////////////////////////
 //BEGIN PRIVACY 
 
@@ -31,6 +27,7 @@ import android.os.ServiceManager;
 import android.privacy.IPrivacySettingsManager;
 import android.privacy.PrivacySettings;
 import android.privacy.PrivacySettingsManager;
+import android.privacy.utilities.PrivacyDebugger;
 
 import android.content.Context;
 import android.content.pm.IPackageManager;
@@ -39,6 +36,10 @@ import android.os.Binder;
 
 //END PRIVACY
 ///////////////////////////////////////////////////////////////////////////////////////////////
+
+import java.util.ArrayList;
+
+import android.util.Log;
 
 
 /**
@@ -102,7 +103,7 @@ public class SystemProperties
             }
         } catch(Exception e) {
             e.printStackTrace();
-            Log.e(PRIVACY_TAG,"something went wrong with getting package name");
+            PrivacyDebugger.e(PRIVACY_TAG,"something went wrong with getting package name");
             return null;
         }
     }
@@ -121,7 +122,7 @@ public class SystemProperties
                 privacyMode = true;
         } catch(Exception e) {
             e.printStackTrace();
-            Log.e(PRIVACY_TAG, "Something went wrong with initalize variables");
+            PrivacyDebugger.e(PRIVACY_TAG, "Something went wrong with initalize variables");
             privacyMode = false;
         }
     }
@@ -149,16 +150,18 @@ public class SystemProperties
                     }
                     return IS_ALLOWED;
                 } else {
-                    Log.e(PRIVACY_TAG,"return GOT_ERROR, because package_names are NULL");
+                    PrivacyDebugger.e(PRIVACY_TAG,
+                            "return GOT_ERROR, because package_names are NULL");
                     return GOT_ERROR;
                 }
             } else {
-                Log.e(PRIVACY_TAG,"return GOT_ERROR, because pSetMan is NULL");
+                PrivacyDebugger.e(PRIVACY_TAG,
+                        "return GOT_ERROR, because pSetMan is NULL");
                 return GOT_ERROR;
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Log.e(PRIVACY_TAG,"Got exception in checkIfPackagesAllowed");
+            PrivacyDebugger.e(PRIVACY_TAG,"Got exception in checkIfPackagesAllowed");
             return GOT_ERROR;
         }
     }
@@ -170,11 +173,11 @@ public class SystemProperties
         String package_names[] = getPackageName();
         if(success && package_names != null) {
             for(int i=0;i<package_names.length;i++)
-                Log.i(PRIVACY_TAG,"Allowed Package: -" + package_names[i]
+                PrivacyDebugger.i(PRIVACY_TAG,"Allowed Package: -" + package_names[i]
                         + "- accessing networkinfo.");
         } else if (package_names != null) {
             for (int i=0;i<package_names.length;i++)
-                Log.i(PRIVACY_TAG,"Blocked Package: -" + package_names[i] 
+                PrivacyDebugger.i(PRIVACY_TAG,"Blocked Package: -" + package_names[i] 
                         + "- accessing networkinfo.");
         }
     }

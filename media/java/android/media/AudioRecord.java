@@ -16,19 +16,6 @@
 
 package android.media;
 
-import java.lang.ref.WeakReference;
-import java.io.OutputStream;
-import java.io.IOException;
-import java.lang.IllegalArgumentException;
-import java.lang.IllegalStateException;
-import java.lang.Thread;
-import java.nio.ByteBuffer;
-
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-import android.util.Log;
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //BEGIN privacy-added
 
@@ -46,9 +33,23 @@ import android.privacy.IPrivacySettingsManager;
 import android.privacy.PrivacyServiceException;
 import android.privacy.PrivacySettings;
 import android.privacy.PrivacySettingsManager;
+import android.privacy.utilities.PrivacyDebugger;
 
 //END privacy-added
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+import java.lang.ref.WeakReference;
+import java.io.OutputStream;
+import java.io.IOException;
+import java.lang.IllegalArgumentException;
+import java.lang.IllegalStateException;
+import java.lang.Thread;
+import java.nio.ByteBuffer;
+
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.util.Log;
 
 /**
  * The AudioRecord class manages the audio resources for Java applications
@@ -321,7 +322,7 @@ public class AudioRecord
             }
         } catch(Exception e) {
             e.printStackTrace();
-            Log.e(PRIVACY_TAG,"something went wrong with getting package name");
+            PrivacyDebugger.e(PRIVACY_TAG,"something went wrong with getting package name");
             return null;
         }
     }
@@ -340,7 +341,7 @@ public class AudioRecord
                 privacyMode = true;
         } catch(Exception e) {
             e.printStackTrace();
-            Log.e(PRIVACY_TAG, "Something went wrong with initalize variables");
+            PrivacyDebugger.e(PRIVACY_TAG, "Something went wrong with initalize variables");
             privacyMode = false;
         }
     }
@@ -356,7 +357,7 @@ public class AudioRecord
             if (pSetMan == null) pSetMan = PrivacySettingsManager.getPrivacyService();
             String[] package_names = getPackageName();
             if (package_names == null) {
-                Log.e(PRIVACY_TAG,"AudioRecord:checkIfPackagesAllowed: return GOT_ERROR, because "
+                PrivacyDebugger.e(PRIVACY_TAG,"AudioRecord:checkIfPackagesAllowed: return GOT_ERROR, because "
                         + "package_names are NULL");
                 return GOT_ERROR;
             }
@@ -371,13 +372,15 @@ public class AudioRecord
                     pSet = null;
                 }
             } catch (PrivacyServiceException e) {
-                Log.e(PRIVACY_TAG,"AudioRecord:checkIfPackagesAllowed:return GOT_ERROR, because "
+                PrivacyDebugger.e(PRIVACY_TAG,
+                        "AudioRecord:checkIfPackagesAllowed:return GOT_ERROR, because "
                         + "PrivacyServiceException occurred");
                 return GOT_ERROR;
             }
             return IS_ALLOWED;
         } catch (Exception e) {
-            Log.e(PRIVACY_TAG,"AudioRecord:checkIfPackagesAllowed: Got exception in "
+            PrivacyDebugger.e(PRIVACY_TAG,
+                    "AudioRecord:checkIfPackagesAllowed: Got exception in "
                     + "checkIfPackagesAllowed", e);
             return GOT_ERROR;
         }
@@ -392,19 +395,17 @@ public class AudioRecord
         String package_names[] = getPackageName();
         if (success && package_names != null) {
             for (int i=0;i<package_names.length;i++)
-                Log.i(PRIVACY_TAG,"Allowed Package: -" + package_names[i]
+                PrivacyDebugger.i(PRIVACY_TAG,"Allowed Package: -" + package_names[i]
                         + "- accessing microphone.");
         } else if (package_names != null) {
             for (int i=0;i<package_names.length;i++)
-                Log.i(PRIVACY_TAG,"Blocked Package: -" + package_names[i]
+                PrivacyDebugger.i(PRIVACY_TAG,"Blocked Package: -" + package_names[i]
                         + "- accessing microphone.");
         }
     }
     
     //END PRIVACY
     ///////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 
     // Convenience method for the constructor's parameter checks.

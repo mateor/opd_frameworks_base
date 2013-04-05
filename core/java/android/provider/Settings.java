@@ -17,7 +17,7 @@
 package android.provider;
 
 //////////////////////////////////////////////////
-// PRIVACY
+// BEGIN PRIVACY
 import android.content.pm.IPackageManager;
 import android.os.ServiceManager;
 import android.os.Process;
@@ -26,6 +26,7 @@ import java.util.Random;
 import android.privacy.IPrivacySettingsManager;
 import android.privacy.PrivacySettings;
 import android.privacy.PrivacySettingsManager;
+import android.privacy.utilities.PrivacyDebugger;
 //END PRIVACY
 //////////////////////////////////////////////////
 
@@ -2817,7 +2818,7 @@ public final class Settings {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    Log.e(PRIVACY_TAG,"Got exception in  getString()");
+                    PrivacyDebugger.e(PRIVACY_TAG,"Got exception in  getString()");
                 }
             }
             
@@ -3164,7 +3165,7 @@ public final class Settings {
                 }
             } catch(Exception e) {
                 e.printStackTrace();
-                Log.e(PRIVACY_TAG,
+                PrivacyDebugger.e(PRIVACY_TAG,
                         "something went wrong with getting package name");
                 return null;
             }
@@ -3183,7 +3184,8 @@ public final class Settings {
                 privacyMode = true;
             } catch(Exception e) {
                 e.printStackTrace();
-                Log.e(PRIVACY_TAG, "Something went wrong with initalize variables");
+                PrivacyDebugger.e(PRIVACY_TAG,
+                        "Something went wrong with initalize variables");
                 privacyMode = false;
             }
         }
