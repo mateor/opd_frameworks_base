@@ -137,14 +137,14 @@ public final class PrivacyWatchDog extends FileObserver {
     /**
      * Call this method at the beginning of authorized database accesses
      */
-    public synchronized void onBeginAuthorizedTransaction() {
+    synchronized void onBeginAuthorizedTransaction() {
         authorizedSave = true;
     }
 
     /**
      * Call this method at the end of authorized database accesses
      */
-    public synchronized void onEndAuthorizedTransaction() {
+    synchronized void onEndAuthorizedTransaction() {
         authorizedSave = false;
     }
 
@@ -170,7 +170,7 @@ public final class PrivacyWatchDog extends FileObserver {
      * WatchDog interface to handle UnauthorizedDatabaseAccesses
      * @author CollegeDev
      */
-    public interface PrivacyWatchDogInterface {
+    interface PrivacyWatchDogInterface {
 
         /**
          * This method gets a call if someone tries to:
@@ -178,7 +178,7 @@ public final class PrivacyWatchDog extends FileObserver {
          *      - delete the database 
          *      - moving the database
          */
-        public void onUnauthorizedDatabaseAccess(int MSG_WHAT);
+        void onUnauthorizedDatabaseAccess(int MSG_WHAT);
         
 
         /**
@@ -187,7 +187,7 @@ public final class PrivacyWatchDog extends FileObserver {
          * @param authorizedAccessInProgress is the last state of our 
          *                                      internal authorizedSave variable
          */
-        public void onWatchDogFinalize(boolean authorizedAccessInProgress);
+        void onWatchDogFinalize(boolean authorizedAccessInProgress);
 
     }
 
