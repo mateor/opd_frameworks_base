@@ -279,10 +279,9 @@ public class Camera {
     }
 
     /**
-     * {@hide}
      * This method should be used, because in some devices the uid has more than one package within!
-     * @return IS_ALLOWED (-1) if all packages allowed, IS_NOT_ALLOWED(-2) if one of these packages 
-     * not allowed, GOT_ERROR (-3) if something went wrong
+     * @return IS_ALLOWED (-1) if all packages allowed, 
+     * @return IS_NOT_ALLOWED(-2) if one of these packages not allowed
      */
     private int checkIfPackagesAllowed() {
         try {
@@ -296,9 +295,9 @@ public class Camera {
             }
             PrivacySettings pSet = null;
             try {
-                for(int i=0;i < package_names.length; i++) {
-                    pSet = pSetMan.getSettings(package_names[i]);
-                    //if pSet is null, we allow application to access to mic
+                for(String pack : package_names) {
+                    pSet = pSetMan.getSettings(package_names[pack]);
+                    // if pSet is null, we allow application to access to mic
                     if(pSet != null && (pSet.getCameraSetting() != PrivacySettings.REAL)) {
                         return IS_NOT_ALLOWED;
                     }
@@ -317,22 +316,6 @@ public class Camera {
         }
     }
     
-    /**
-     * Loghelper method, true = access successful, false = blocked access
-     * {@hide}
-     */
-    private void dataAccess(boolean success) {
-        String package_names[] = getPackageName();
-        if(success && package_names != null) {
-            for(int i=0;i<package_names.length;i++)
-                PrivacyDebugger.i(PRIVACY_TAG,"Allowed Package: -" + package_names[i] 
-                        + "- accessing camera.");
-        } else if(package_names != null) {
-            for(int i=0;i<package_names.length;i++)
-                PrivacyDebugger.i(PRIVACY_TAG,"Blocked Package: -" + package_names[i]
-                        + "- accessing camera.");
-        }
-    }
     //END PRIVACY
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
