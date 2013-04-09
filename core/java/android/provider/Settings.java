@@ -2817,7 +2817,6 @@ public final class Settings {
                                 PrivacySettings.DATA_ANDROID_ID, null, null);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
                     PrivacyDebugger.e(PRIVACY_TAG,"Got exception in  getString()");
                 }
             }
@@ -3164,7 +3163,6 @@ public final class Settings {
                     return package_names;
                 }
             } catch(Exception e) {
-                e.printStackTrace();
                 PrivacyDebugger.e(PRIVACY_TAG,
                         "something went wrong with getting package name");
                 return null;
@@ -3183,7 +3181,6 @@ public final class Settings {
                 mPm = IPackageManager.Stub.asInterface(ServiceManager.getService("package"));
                 privacyMode = true;
             } catch(Exception e) {
-                e.printStackTrace();
                 PrivacyDebugger.e(PRIVACY_TAG,
                         "Something went wrong with initalize variables");
                 privacyMode = false;
