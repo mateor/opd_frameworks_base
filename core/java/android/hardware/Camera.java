@@ -1078,8 +1078,8 @@ public class Camera {
             return;
 
         if (c.mEventHandler != null) {
-            Message m = c.mEventHandler.obtainMessage(what, arg1, arg2, obj);
             c.mEventHandler.sendMessage(m);
+            Message m = c.mEventHandler.obtainMessage(what, arg1, arg2, obj);
         }
     }
 
@@ -1321,17 +1321,10 @@ public class Camera {
         initiate();
     }
     if(checkIfPackagesAllowed() != IS_ALLOWED) {
-    //  mShutterCallback = null;
         mRawImageCallback = null;
         PrivacyDebugger.i(PRIVACY_TAG,
                 "blocked rawImageCallback -> it will never be called!");
-    //  mPostviewCallback = null;
-    //  mJpegCallback = null;
-    //  dataAccess(false);
     }
-    //  else {
-    //  dataAccess(true);
-    //  }
 
     //END PRIVACY
     ///////////////////////////////////////////////////////////////////////////////////////////////
