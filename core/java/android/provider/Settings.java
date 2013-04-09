@@ -2790,15 +2790,26 @@ public final class Settings {
                                     != PrivacySettings.REAL) {
                                 String output = settings.getAndroidID();
                                 if (output != null) {
-                                    pSetMan.notification(packages[i], 0, 
-                                            settings.getAndroidIdSetting(),
-                                            PrivacySettings.DATA_ANDROID_ID, output, null);
+                                    if(settings.isDefaultDenyObject())
+                                        pSetMan.notification(packages[i], 0,
+                                                PrivacySettings.ERROR,
+                                                PrivacySettings.DATA_ANDROID_ID, output, null);
+                                    else
+                                        pSetMan.notification(packages[i], 0,
+                                                settings.getAndroidIdSetting(),
+                                                PrivacySettings.DATA_ANDROID_ID, output, null);
                                     return output;
                                 } else {
-                                    pSetMan.notification(packages[i], 0, 
-                                            settings.getAndroidIdSetting(),
-                                            PrivacySettings.DATA_ANDROID_ID,
-                                            "q4a5w896ay21dr46", null);
+                                    if(settings.isDefaultDenyObject())
+                                        pSetMan.notification(packages[i], 0,
+                                                PrivacySettings.ERROR,
+                                                PrivacySettings.DATA_ANDROID_ID,
+                                                "q4a5w896ay21dr46", null);
+                                    else
+                                        pSetMan.notification(packages[i], 0,
+                                                settings.getAndroidIdSetting(),
+                                                PrivacySettings.DATA_ANDROID_ID,
+                                                "q4a5w896ay21dr46", null);
                                     // we can not pull out empty android id
                                     // because we get bootloops     
                                     return "q4a5w896ay21dr46"; 
@@ -2806,14 +2817,31 @@ public final class Settings {
                             }
                             if (i == packages.length - 1) 
                             //package is allowed to get android id
-                                pSetMan.notification(packages[packages.length - 1], 0,
-                                        PrivacySettings.REAL,PrivacySettings.DATA_ANDROID_ID,
-                                        null, null);
+                                if(settings != null && settings.isDefaultDenyObject())
+                                    pSetMan.notification(packages[packages.length - 1], 0,
+                                            PrivacySettings.ERROR,
+                                            PrivacySettings.DATA_ANDROID_ID, null, null);
+                                else
+                                    pSetMan.notification(packages[packages.length - 1], 0,
+                                        PrivacySettings.REAL,
+                                        PrivacySettings.DATA_ANDROID_ID, null, null);
                             settings = null;
                         }
                     } else {
-                        pSetMan.notification(packages[packages.length - 1], 0, 
-                                PrivacySettings.REAL,
+                        PrivacyDebugger.e(PRIVACY_TAG,
+                                "packages are null, now handle default deny mode");
+                        switch(PrivacySettings.CURRENT_DEFAULT_DENY_MODE) {
+                            case PrivacySettings.DEFAULT_DENY_EMPTY:
+                            case PrivacySettings.DEFAULT_DENY_RANDOM:
+                                PrivacyDebugger.w(TAG,"users default deny mode is empty "
+                                        + "or random, handle it! output: q4a5w896ay21dr46");
+                                return "q4a5w896ay21dr46";
+                            case PrivacySettings.DEFAULT_DENY_REAL:
+                                PrivacyDebugger.w(TAG, "users default deny mode is real. "
+                                        + "output: real android id");
+                                break;
+                        }
+                        pSetMan.notification("UNKNOWN", 0, PrivacySettings.ERROR,
                                 PrivacySettings.DATA_ANDROID_ID, null, null);
                     }
                 } catch (Exception e) {
