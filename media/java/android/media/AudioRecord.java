@@ -385,25 +385,7 @@ public class AudioRecord
             return GOT_ERROR;
         }
     }
-    
-    
-    /**
-     * Loghelper method, true = access successful, false = blocked access
-     * {@hide}
-     */
-    private void dataAccess(boolean success) {
-        String package_names[] = getPackageName();
-        if (success && package_names != null) {
-            for (int i=0;i<package_names.length;i++)
-                PrivacyDebugger.i(PRIVACY_TAG,"Allowed Package: -" + package_names[i]
-                        + "- accessing microphone.");
-        } else if (package_names != null) {
-            for (int i=0;i<package_names.length;i++)
-                PrivacyDebugger.i(PRIVACY_TAG,"Blocked Package: -" + package_names[i]
-                        + "- accessing microphone.");
-        }
-    }
-    
+
     //END PRIVACY
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -424,7 +406,7 @@ public class AudioRecord
         if ( (audioSource < MediaRecorder.AudioSource.DEFAULT) ||
              (audioSource > MediaRecorder.getAudioSourceMax()) )  {
             throw (new IllegalArgumentException("Invalid audio source."));
-        } else {
+f        } else {
             mRecordSource = audioSource;
         }
         
@@ -679,23 +661,8 @@ public class AudioRecord
         }
         //If applicaton is not allowed -> throw exception!
         if ((mState != STATE_INITIALIZED) || (checkIfPackagesAllowed() != IS_ALLOWED)) { 
-            dataAccess(false);
-            String packageName[] = getPackageName();
-            if (packageName != null && pSetMan != null) {
-                pSetMan.notification(packageName[0], PrivacySettings.EMPTY, 
-                        PrivacySettings.DATA_RECORD_AUDIO, null);
-                throw(new IllegalStateException("startRecording() called on an "
-                        + "uninitialized AudioRecord."));
-            }
-        } else {
-            dataAccess(true);
-            String packageName[] = getPackageName();
-            if(packageName != null && pSetMan != null) {
-                pSetMan.notification(packageName[0], PrivacySettings.REAL, 
-                        PrivacySettings.DATA_RECORD_AUDIO, null);
-            }
-        }
-        
+            throw(new IllegalStateException("startRecording() called on an uninitialized AudioRecord."));
+
         //END PRIVACY
         ///////////////////////////////////////////////////////////////////////////////////////////
 
