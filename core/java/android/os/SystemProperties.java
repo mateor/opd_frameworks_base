@@ -127,44 +127,81 @@ public class SystemProperties
         }
     }
     /**
-     * {@hide}
      * This method should be used, because in some devices the uid has more than one package within!
-     * @return IS_ALLOWED (-1) if all packages allowed, IS_NOT_ALLOWED(-2) if one of these packages
-     * not allowed, GOT_ERROR (-3) if something went wrong
+     * It also includes the notification! It also handles the default deny mode!
+     * @return IS_ALLOWED (-1) if all packages allowed,
+     * @return IS_NOT_ALLOWED(-2) if one of these packages
      */
-    private static int checkIfPackagesAllowed() {
+    private int checkIfPackagesAllowed() {
         try {
-            //boolean isAllowed = false;
-            if(pSetMan != null) {
-                PrivacySettings pSet = null;
-                String[] package_names = getPackageName();
-                int uid = Process.myUid();
-                if(package_names != null) {
-                    for(int i=0;i < package_names.length; i++) {
-                        pSet = pSetMan.getSettings(package_names[i], uid);
-                        //if pSet is null, we allow application to access to mic
-                        if (pSet != null && (pSet.getNetworkInfoSetting() != PrivacySettings.REAL)) {
-                            return IS_NOT_ALLOWED;
-                        }
-                        pSet = null;
+            if (pSetMan == null) pSetMan = PrivacySettingsManager.getPrivacyService();
+            String[] package_names = getPackageName();
+            if (package_names == null) {
+               int output;
+               PrivacyDebugger.w(PRIVACY_TAG,
+                        "can't parse packages, going to check default deny mode");
+               if(PrivacySettings.CURRENT_DEFAULT_DENY_MODE
+                        != PrivacySettings.DEFAULT_DENY_REAL) {
+                   pSetMan.notification("UNKNOWN", 0, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_NETWORK_INFO_CURRENT, null, null);
+                   output = IS_NOT_ALLOWED;
+               } else {
+                   pSetMan.notification("UNKNOWN", 0, PrivacySettings.ERROR,
+                           PrivacySettings.DATA_NETWORK_INFO_CURRENT, null, null);
+                   output = IS_ALLOWED;
+               }
+               return output;
+            }
+            PrivacySettings pSet = null;
+            try {
+                for(String pack : package_names) {
+                    pSet = pSetMan.getSettings(pack);
+                    // if pSet is null, we allow application to access to network
+                    if(pSet != null && (pSet.getNetworkInfoSetting()
+                            != PrivacySettings.REAL)) {
+                        if(pSet.isDefaultDenyObject())
+                            pSetMan.notification(pack, 0, PrivacySettings.ERROR,
+                                    PrivacySettings.DATA_NETWORK_INFO_CURRENT, null, null);
+                        else
+                            pSetMan.notification(pack, 0, PrivacySettings.EMPTY,
+                                    PrivacySettings.DATA_NETWORK_INFO_CURRENT, null, null);
+                        PrivacyDebugger.i(TAG, "package: " + pack
+                                + " is not allowed to access network. "
+                                + "Default deny mode on: " + pSet.isDefaultDenyObject());
+                        return IS_NOT_ALLOWED;
                     }
-                    return IS_ALLOWED;
-                } else {
-                    PrivacyDebugger.e(PRIVACY_TAG,
-                            "return GOT_ERROR, because package_names are NULL");
-                    return GOT_ERROR;
+                    pSet = null;
                 }
-            } else {
-                PrivacyDebugger.e(PRIVACY_TAG,
-                        "return GOT_ERROR, because pSetMan is NULL");
+                PrivacyDebugger.w(PRIVACY_TAG,"allowing package: "
+                        + package_names[0] + " accessing network info");
+                pSetMan.notification(package_names[0], 0, PrivacySettings.REAL,
+                        PrivacySettings.DATA_NETWORK_INFO_CURRENT, null, null);
+                return IS_ALLOWED;
+            } catch (PrivacyServiceException e) {
+                PrivacyDebugger.e(PRIVACY_TAG,"Network:checkIfPackagesAllowed: "
+                        + "return GOT_ERROR, because PrivacyServiceException occurred");
                 return GOT_ERROR;
             }
+            return IS_ALLOWED;
         } catch (Exception e) {
-            e.printStackTrace();
-            PrivacyDebugger.e(PRIVACY_TAG,"Got exception in checkIfPackagesAllowed");
-            return GOT_ERROR;
+            PrivacyDebugger.e(PRIVACY_TAG,"Got exception in checkIfPackagesAllowed()", e);
+            int output;
+            PrivacyDebugger.e(PRIVACY_TAG, "got error while trying to check permission. "
+                    "Going to apply default deny mode.");
+            if(PrivacySettings.CURRENT_DEFAULT_DENY_MODE
+                    != PrivacySettings.DEFAULT_DENY_REAL) {
+                pSetMan.notification("UNKNOWN", 0, PrivacySettings.ERROR,
+                        PrivacySettings.DATA_NETWORK_INFO_CURRENT, null, null);
+                output = IS_NOT_ALLOWED;
+            } else {
+                pSetMan.notification("UNKNOWN", 0, PrivacySettings.ERROR,
+                        PrivacySettings.DATA_NETWORK_INFO_CURRENT, null, null);
+                output = IS_ALLOWED;
+            }
+            return output;
         }
     }
+
     /**
      * Loghelper method, true = access successful, false = blocked access
      * {@hide}
