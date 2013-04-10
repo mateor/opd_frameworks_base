@@ -127,49 +127,82 @@ public final class MicrophoneInputStream extends InputStream {
         }
     }
     /**
-     * {@hide}
-     * This method should be used, because in some devices the uid has more than one package within!
-     * @return IS_ALLOWED (-1) if all packages allowed, IS_NOT_ALLOWED(-2) if one of these packages
-     * not allowed, GOT_ERROR (-3) if something went wrong
+     * This method should be used, because in some devices the uid has more than one package
+     * It also includes the notification! It also handles the default deny mode!
+     * @return IS_ALLOWED (-1) if all packages allowed,
+     * @return IS_NOT_ALLOWED(-2) if one of these packages
      */
+
     private int checkIfPackagesAllowed() {
-        try {
-            //boolean isAllowed = false;
+         try {
             if (pSetMan == null) pSetMan = PrivacySettingsManager.getPrivacyService();
             String[] package_names = getPackageName();
             if (package_names == null) {
-                PrivacyDebugger.e(PRIVACY_TAG,
-                        "MicrophoneInputStream:checkIfPackagesAllowed: return GOT_ERROR, "
-                        + "because package_names are NULL");
-                return GOT_ERROR;
+               int output;
+               PrivacyDebugger.w(PRIVACY_TAG,
+                        "can't parse packages, going to check default deny mode");
+               if(PrivacySettings.CURRENT_DEFAULT_DENY_MODE
+                        != PrivacySettings.DEFAULT_DENY_REAL) {
+                   pSetMan.notification("UNKNOWN", 0, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_RECORD_AUDIO, null, null);
+                   output = IS_NOT_ALLOWED;
+               } else {
+                   pSetMan.notification("UNKNOWN", 0, PrivacySettings.ERROR,
+                           PrivacySettings.DATA_RECORD_AUDIO, null, null);
+                   output = IS_ALLOWED;
+               }
+               return output;
             }
             PrivacySettings pSet = null;
             try {
-                for (int i=0;i < package_names.length; i++) {
-                    pSet = pSetMan.getSettings(package_names[i]);
-                    //if pSet is null, we allow application to access to mic
-                    if (pSet != null && (pSet.getRecordAudioSetting()
-                            != PrivacySettings.REAL)) { 
+                for(String pack : package_names) {
+                    pSet = pSetMan.getSettings(pack);
+                    // if pSet is null, we allow application to access to mic
+                    if(pSet != null && (pSet.getRecordAudioSetting()
+                            != PrivacySettings.REAL)) {
+                        if(pSet.isDefaultDenyObject())
+                            pSetMan.notification(pack, 0, PrivacySettings.ERROR,
+                                    PrivacySettings.DATA_RECORD_AUDIO, null, null);
+                        else
+                            pSetMan.notification(pack, 0, PrivacySettings.EMPTY,
+                                    PrivacySettings.DATA_RECORD_AUDIO, null, null);
+                        PrivacyDebugger.i(TAG, "package: " + pack
+                                + " is not allowed to access microphone. "
+                                + "Default deny mode on: " + pSet.isDefaultDenyObject());
                         return IS_NOT_ALLOWED;
-                    }
+                     }
                     pSet = null;
-                }
+                 }
+                PrivacyDebugger.w(PRIVACY_TAG,"allowing package: "
+                        + package_names[0] + " access to microphone");
+                pSetMan.notification(package_names[0], 0, PrivacySettings.REAL,
+                        PrivacySettings.DATA_RECORD_AUDIO, null, null);
+                return IS_ALLOWED;
             } catch (PrivacyServiceException e) {
-                PrivacyDebugger.e(PRIVACY_TAG,
-                        "MicrophoneInputStream:checkIfPackagesAllowed:return GOT_ERROR, "
-                        + "because PrivacyServiceException occurred");
-                return GOT_ERROR;
-            }
+                PrivacyDebugger.e(PRIVACY_TAG,"RecordAudio:checkIfPackagesAllowed: "
+                        + "return GOT_ERROR, because PrivacyServiceException occurred");
+                 return GOT_ERROR;
+             }
             return IS_ALLOWED;
-        } catch (Exception e) {
-            PrivacyDebugger.e(PRIVACY_TAG,
-                    "MicrophoneInputStream:checkIfPackagesAllowed: Got exception in "
-                    + "checkIfPackagesAllowed", e);
-            return GOT_ERROR;
-        }
-    }
-    
-    
+         } catch (Exception e) {
+            PrivacyDebugger.e(PRIVACY_TAG,"Got exception in checkIfPackagesAllowed()", e);
+            int output;
+            PrivacyDebugger.e(PRIVACY_TAG, "got error while trying to check permission. "
+                    "Going to apply default deny mode.");
+            if(PrivacySettings.CURRENT_DEFAULT_DENY_MODE
+                    != PrivacySettings.DEFAULT_DENY_REAL) {
+                pSetMan.notification("UNKNOWN", 0, PrivacySettings.ERROR,
+                        PrivacySettings.DATA_RECORD_AUDIO, null, null);
+                output = IS_NOT_ALLOWED;
+            } else {
+                pSetMan.notification("UNKNOWN", 0, PrivacySettings.ERROR,
+                        PrivacySettings.DATA_RECORD_AUDIO, null, null);
+                output = IS_ALLOWED;
+            }
+            return output;
+         }
+     }
+
     /**
      * Loghelper method, true = access successful, false = blocked access
      * {@hide}
