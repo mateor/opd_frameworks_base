@@ -100,7 +100,6 @@ public final class MicrophoneInputStream extends InputStream {
                 return package_names;
             }
         } catch(Exception e) {
-            e.printStackTrace();
             PrivacyDebugger.e(PRIVACY_TAG,
                     "something went wrong with getting package name");
             return null;
@@ -120,7 +119,6 @@ public final class MicrophoneInputStream extends InputStream {
             mPm = IPackageManager.Stub.asInterface(ServiceManager.getService("package"));
             privacyMode = true;
         } catch(Exception e) {
-            e.printStackTrace();
             PrivacyDebugger.e(PRIVACY_TAG, 
                     "Something went wrong with initalize variables");
             privacyMode = false;
@@ -168,8 +166,8 @@ public final class MicrophoneInputStream extends InputStream {
             return GOT_ERROR;
         }
     }
-    
-    
+
+
     /**
      * Loghelper method, true = access successful, false = blocked access
      * {@hide}
