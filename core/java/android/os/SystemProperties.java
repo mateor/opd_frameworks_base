@@ -162,22 +162,7 @@ public class SystemProperties
             return GOT_ERROR;
         }
     }
-    /**
-     * Loghelper method, true = access successful, false = blocked access
-     * {@hide}
-     */
-    private static void dataAccess(boolean success) {
-        String package_names[] = getPackageName();
-        if(success && package_names != null) {
-            for(int i=0;i<package_names.length;i++)
-                PrivacyDebugger.i(PRIVACY_TAG,"Allowed Package: -" + package_names[i]
-                        + "- accessing networkinfo.");
-        } else if (package_names != null) {
-            for (int i=0;i<package_names.length;i++)
-                PrivacyDebugger.i(PRIVACY_TAG,"Blocked Package: -" + package_names[i] 
-                        + "- accessing networkinfo.");
-        }
-    }
+
     //END PRIVACY
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -195,10 +180,8 @@ public class SystemProperties
                 key.equals(TelephonyProperties.PROPERTY_OPERATOR_NUMERIC)) {
             initiate();
             if (checkIfPackagesAllowed() == IS_NOT_ALLOWED) {
-                dataAccess(false);
                 return "";
             }
-            dataAccess(true);
         }
         return native_get(key);
     }
@@ -216,10 +199,8 @@ public class SystemProperties
                 key.equals(TelephonyProperties.PROPERTY_OPERATOR_NUMERIC)) {
             initiate();
             if (checkIfPackagesAllowed() == IS_NOT_ALLOWED) {
-                dataAccess(false);
                 return "";
             }
-            dataAccess(true);
         }
         return native_get(key, def);
     }
