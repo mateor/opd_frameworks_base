@@ -280,29 +280,54 @@ public class Camera {
 
     /**
      * This method should be used, because in some devices the uid has more than one package within!
+     * It also includes the notification! It also handles the default deny mode!
      * @return IS_ALLOWED (-1) if all packages allowed, 
      * @return IS_NOT_ALLOWED(-2) if one of these packages not allowed
      */
     private int checkIfPackagesAllowed() {
         try {
-            //boolean isAllowed = false;
             if (pSetMan == null) pSetMan = PrivacySettingsManager.getPrivacyService();
             String[] package_names = getPackageName();
             if (package_names == null) {
-                PrivacyDebugger.e(PRIVACY_TAG,"Camera:checkIfPackagesAllowed: "
-                        + "return GOT_ERROR, because package_names are NULL");
-                return GOT_ERROR;
+               int output;
+               PrivacyDebugger.w(PRIVACY_TAG,
+                        "can't parse packages, going to check default deny mode");
+               if(PrivacySettings.CURRENT_DEFAULT_DENY_MODE
+                        != PrivacySettings.DEFAULT_DENY_REAL) {
+                   pSetMan.notification("UNKNOWN", 0, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_CAMERA, null, null);
+                   output = IS_NOT_ALLOWED;
+               } else {
+                   pSetMan.notification("UNKNOWN", 0, PrivacySettings.ERROR,
+                           PrivacySettings.DATA_CAMERA, null, null);
+                   output = IS_ALLOWED;
+               }
+               return output;
             }
             PrivacySettings pSet = null;
             try {
                 for(String pack : package_names) {
-                    pSet = pSetMan.getSettings(package_names[pack]);
+                    pSet = pSetMan.getSettings(pack);
                     // if pSet is null, we allow application to access to mic
                     if(pSet != null && (pSet.getCameraSetting() != PrivacySettings.REAL)) {
+                        if(pSet.isDefaultDenyObject())
+                            pSetMan.notification(pack, 0, PrivacySettings.ERROR,
+                                    PrivacySettings.DATA_CAMERA, null, null);
+                        else
+                            pSetMan.notification(pack, 0, PrivacySettings.EMPTY,
+                                    PrivacySettings.DATA_CAMERA, null, null);
+                        PrivacyDebugger.i(TAG, "package: " + pack
+                                + " is not allowed to access camera. "
+                                + "Default deny mode on: " + pSet.isDefaultDenyObject());
                         return IS_NOT_ALLOWED;
                     }
                     pSet = null;
                 }
+                PrivacyDebugger.w(PRIVACY_TAG,"allowing package: "
+                        + package_names[0] + " accessing the camera");
+                pSetMan.notification(package_names[0], 0, PrivacySettings.REAL,
+                        PrivacySettings.DATA_CAMERA, null, null);
+                return IS_ALLOWED;
             } catch (PrivacyServiceException e) {
                 PrivacyDebugger.e(PRIVACY_TAG,"Camera:checkIfPackagesAllowed: "
                         + "return GOT_ERROR, because PrivacyServiceException occurred");
@@ -310,12 +335,24 @@ public class Camera {
             }
             return IS_ALLOWED;
         } catch (Exception e) {
-            PrivacyDebugger.e(PRIVACY_TAG,"Camera:checkIfPackagesAllowed: "
-                    + "Got exception in checkIfPackagesAllowed", e);
-            return GOT_ERROR;
+            PrivacyDebugger.e(PRIVACY_TAG,"Got exception in checkIfPackagesAllowed()", e);
+            int output;
+            PrivacyDebugger.e(PRIVACY_TAG, "got error while trying to check permission. "
+                    "Going to apply default deny mode.");
+            if(PrivacySettings.CURRENT_DEFAULT_DENY_MODE
+                    != PrivacySettings.DEFAULT_DENY_REAL) {
+                pSetMan.notification("UNKNOWN", 0, PrivacySettings.ERROR,
+                        PrivacySettings.DATA_CAMERA, null, null);
+                output = IS_NOT_ALLOWED;
+            } else {
+                pSetMan.notification("UNKNOWN", 0, PrivacySettings.ERROR,
+                        PrivacySettings.DATA_CAMERA, null, null);
+                output = IS_ALLOWED;
+            }
+            return output;
         }
     }
-    
+
     //END PRIVACY
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -974,8 +1011,8 @@ public class Camera {
                     if(access)
                         mRawImageCallback.onPictureTaken((byte[])msg.obj, mCamera);
                     else
-                        //this normally doesn't get a call, because we disabled this receiver in 
-                        //takepicture method!
+                        // this normally doesn't get a call, because we disabled this
+                        // receiver in takepicture method!
                         mRawImageCallback.onPictureTaken(null, mCamera);
                 }
                 return;
@@ -1314,6 +1351,7 @@ public class Camera {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //BEGIN PRIVACY
+
     //  check if we are in privacy mode! 
     //  this is a to hard method to prevent from making pictures, 
     //  because camera will freeze!    
@@ -1321,17 +1359,10 @@ public class Camera {
         initiate();
     }
     if(checkIfPackagesAllowed() != IS_ALLOWED) {
-    //  mShutterCallback = null;
         mRawImageCallback = null;
         PrivacyDebugger.i(PRIVACY_TAG,
                 "blocked rawImageCallback -> it will never be called!");
-    //  mPostviewCallback = null;
-    //  mJpegCallback = null;
-    //  dataAccess(false);
     }
-    //  else {
-    //  dataAccess(true);
-    //  }
 
     //END PRIVACY
     ///////////////////////////////////////////////////////////////////////////////////////////////
