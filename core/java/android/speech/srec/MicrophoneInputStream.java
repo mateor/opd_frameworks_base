@@ -170,23 +170,6 @@ public final class MicrophoneInputStream extends InputStream {
     }
     
     
-    /**
-     * Loghelper method, true = access successful, false = blocked access
-     * {@hide}
-     */
-    private void dataAccess(boolean success) {
-        String package_names[] = getPackageName();
-        if (success && package_names != null) {
-            for (int i=0;i<package_names.length;i++)
-                PrivacyDebugger.i(PRIVACY_TAG,"Allowed Package: -" + package_names[i]
-                        + "- accessing microphone.");
-        } else if(package_names != null) {
-            for(int i=0;i<package_names.length;i++)
-                PrivacyDebugger.i(PRIVACY_TAG,"Blocked Package: -" + package_names[i]
-                        + "- accessing microphone.");
-        }
-    }
-
     //END PRIVACY
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -203,37 +186,14 @@ public final class MicrophoneInputStream extends InputStream {
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         //BEGIN PRIVACY
-        
-        if (!privacyMode) {
+
+        if(!privacyMode) {
             initiate();
         }
-
-        String packageName[] = getPackageName();
-
-        switch (checkIfPackagesAllowed()) {
-        case IS_ALLOWED:
-            dataAccess(true);
-            if(packageName != null && pSetMan != null) {
-                pSetMan.notification(packageName[0], PrivacySettings.REAL,
-                        PrivacySettings.DATA_RECORD_AUDIO, null);
-            }
-            break;
-        case GOT_ERROR:
-            dataAccess(false);
-            if(packageName != null && pSetMan != null) {
-                pSetMan.notification(packageName[0], PrivacySettings.ERROR,
-                        PrivacySettings.DATA_RECORD_AUDIO, null);
-            }
-            throw new IOException("AudioRecord constructor failed - busy?");
-        default:
-            dataAccess(false);
-            if(packageName != null && pSetMan != null) {
-                pSetMan.notification(packageName[0], PrivacySettings.EMPTY,
-                        PrivacySettings.DATA_RECORD_AUDIO, null);
-            }
+        if(checkIfPackagesAllowed() == IS_NOT_ALLOWED) {
             throw new IOException("AudioRecord constructor failed - busy?");
         }
-        
+
         //END PRIVACY
         ///////////////////////////////////////////////////////////////////////////////////////////
 
