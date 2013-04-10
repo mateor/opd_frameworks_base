@@ -423,7 +423,6 @@ public class MediaRecorder
                 return package_names;
             }
         } catch(Exception e) {
-            e.printStackTrace();
             PrivacyDebugger.e(PRIVACY_TAG,
                     "something went wrong with getting package name");
             return null;
@@ -512,7 +511,6 @@ public class MediaRecorder
                 //runner = new PrivacyRunner();
                 privacyMode = true;
         } catch(Exception e) {
-            e.printStackTrace();
             PrivacyDebugger.e(PRIVACY_TAG, "Something went wrong with initalize variables");
             privacyMode = false;
         }
@@ -1625,7 +1623,6 @@ public class MediaRecorder
             } catch(Exception e) {
                 PrivacyDebugger.e(PRIVACY_TAG,
                         "Something went wrong while waiting for cancel the stream!");
-                e.printStackTrace();
             } finally {
                 privacyStop();
             }
