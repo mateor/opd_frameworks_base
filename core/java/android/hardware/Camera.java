@@ -1066,7 +1066,7 @@ public class Camera {
                 return;
 
             case CAMERA_MSG_ERROR :
-                Log.e(TAG, "Error " + msg.arg1);
+                PrivacyDebugger.e(TAG, "Error " + msg.arg1);
                 if (mErrorCallback != null) {
                     mErrorCallback.onError(msg.arg1, mCamera);
                 }
