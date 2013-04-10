@@ -517,45 +517,7 @@ public class MediaRecorder
             privacyMode = false;
         }
     }
- 
-     /**
-     * Loghelper method, true = access successful, false = blocked access. 
-     * {@hide}
-     */
-    private void dataAccess(boolean success, int micOrBoth) {
-        String package_names[] = getPackageName();
-        if (success && package_names != null) {
-            switch(micOrBoth) {
-                case MIC_DATA_ACCESS:
-                    for (int i=0;i<package_names.length;i++)
-                        PrivacyDebugger.i(PRIVACY_TAG,
-                                "Allowed Package: -" + package_names[i] 
-                                + "- accessing microphone.");
-                    break;
-                case BOTH_DATA_ACCESS:
-                    for (int i=0;i<package_names.length;i++)
-                        PrivacyDebugger.i(PRIVACY_TAG,
-                                "Allowed Package: -" + package_names[i]
-                                + "- accessing microphone and camera.");
-                    break;
-            }
-        } else if (package_names != null) {
-            switch(micOrBoth) {
-                case MIC_DATA_ACCESS:
-                    for (int i=0;i<package_names.length;i++)
-                        PrivacyDebugger.i(PRIVACY_TAG,
-                                "Blocked Package: -" + package_names[i] 
-                                + "- accessing microphone.");
-                    break;
-                case BOTH_DATA_ACCESS:
-                    for (int i=0;i<package_names.length;i++)
-                        PrivacyDebugger.i(PRIVACY_TAG,
-                                "Blocked Package: -" + package_names[i] 
-                                + "- accessing microphone and camera.");
-                    break;
-            }
-        }
-    }
+
     //END PRIVACY
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1121,52 +1083,17 @@ public class MediaRecorder
         boolean skip = false;
         switch(ACTUAL_STATE) {
             case STATE_RECORD_AUDIO:
-                if (checkIfPackagesAllowed(MODE_RECORD_AUDIO) != IS_ALLOWED 
-                        /* || checkIfPackagesAllowed(MODE_RECORD_BOTH) == IS_NOT_ALLOWED*/) {
-                    String x[] = getPackageName();
-                    if (x != null && x.length > 0 && pSetMan != null) {
-                        pSetMan.notification(x[0], PrivacySettings.EMPTY, 
-                                PrivacySettings.DATA_RECORD_AUDIO, null);
-                    }
+                    if(checkIfPackagesAllowed(MODE_RECORD_AUDIO) == IS_NOT_ALLOWED){
                     pRunner = new PrivacyRunner();
-                    //here wo do not need to exchange the path or filedescriptor,
-                    //because we can interrupt very quick!
+                    // here wo do not need to exchange the path or filedescriptor,
+                    // because we can interrupt very quick!
                     pRunner.setDelay(50); // try very low value
                     pRunner.start();
                     skip = true;
-    //                if (x != null) PrivacyDebugger.i(PRIVACY_TAG,
-    //                 "now throw exception in prepare method for "
-    //                        + "package: " + x[0]);
-    //                else PrivacyDebugger.i(PRIVACY_TAG,
-    //                        "now throw exception in prepare method");
-    //                if (ACTUAL_STATE == STATE_RECORD_BOTH) {
-    //                    dataAccess(false, BOTH_DATA_ACCESS);
-    //                    if (x != null)
-    //                        pSetMan.notification(x[0], 0, PrivacySettings.EMPTY, 
-    //                                PrivacySettings.DATA_CAMERA, null, pSetMan.getSettings(x[0],
-    //                                Process.myUid()));
-    //                } else {
-    //                    dataAccess(false, MIC_DATA_ACCESS);
-    //                    if (x != null)
-    //                        pSetMan.notification(x[0], 0, PrivacySettings.EMPTY, 
-    //                                PrivacySettings.DATA_RECORD_AUDIO, null,
-    //                                pSetMan.getSettings(x[0], Process.myUid()));
-    //                    //now test something, because a lot of applications crashes if we throw
-    //                    //illegalstateException. We intercept now when applications wants to
-    //                    //record audio!
-    //                    //skip = true;
-    //                    //break;
-    //                }
-    //                throw new IllegalStateException(); //now throw exception to prevent recording 
                 }
                 break;
             case STATE_RECORD_BOTH:
                 if (checkIfPackagesAllowed(MODE_RECORD_BOTH) != IS_ALLOWED){
-                    String x[] = getPackageName();
-                    if (x != null && x.length > 0 && pSetMan != null) {
-                        pSetMan.notification(x[0], PrivacySettings.EMPTY, 
-                                PrivacySettings.DATA_CAMERA, null);
-                    }
                     if (mPath != null) {
                         //now overwrite path
                         mPath = getPrivacyPath();
@@ -1188,18 +1115,7 @@ public class MediaRecorder
         //END PRIVACY
         ///////////////////////////////////////////////////////////////////////////////////////////
 
-        String packageName[] = getPackageName();
-        
-        // **SM: Need to verify this code
-        if (!skip) {
-            if (ACTUAL_STATE == STATE_RECORD_BOTH && packageName != null
-                    && packageName.length > 0) {
-                pSetMan.notification(packageName[0], 0, PrivacySettings.REAL, 
-                        PrivacySettings.DATA_CAMERA, null, null);
-            } else if (packageName != null && packageName.length > 0) {
-                pSetMan.notification(packageName[0], 0, PrivacySettings.REAL,
-                        PrivacySettings.DATA_RECORD_AUDIO, null, null);
-            }
+        // **SM & MR (: Need to verify this code
             deletedFile = true;
         }
 
