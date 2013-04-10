@@ -27,6 +27,12 @@ interface IPrivacySettingsManager
     boolean setEnabled(boolean enable);
     boolean setNotificationsEnabled(boolean enable);
     void setBootCompleted();
+    void killTask(in String[] packageName, int UID);
+    int getLastCallerId(long uniqueId);
+    void toggleDebugMode(boolean state);
+    boolean isFailSafeActive();
+    void setFailSafeMode(boolean state);
+    void disableOrEnableApplication(String packageName, int UID, boolean disable);
     void setDebugFlagInt(String flagName, int value);
     int getDebugFlagInt(String flagName);
     void setDebugFlagBool(String flagName, boolean value);
