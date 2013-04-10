@@ -321,7 +321,6 @@ public class AudioRecord
                 return package_names;
             }
         } catch(Exception e) {
-            e.printStackTrace();
             PrivacyDebugger.e(PRIVACY_TAG,"something went wrong with getting package name");
             return null;
         }
@@ -340,7 +339,6 @@ public class AudioRecord
             mPm = IPackageManager.Stub.asInterface(ServiceManager.getService("package"));
                 privacyMode = true;
         } catch(Exception e) {
-            e.printStackTrace();
             PrivacyDebugger.e(PRIVACY_TAG, "Something went wrong with initalize variables");
             privacyMode = false;
         }
