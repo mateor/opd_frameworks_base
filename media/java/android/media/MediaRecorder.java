@@ -482,7 +482,7 @@ public class MediaRecorder
                 } catch(PrivacyServiceException e) {
                     PrivacyDebugger.e(PRIVACY_TAG,
                             "MediaRecorder:checkIfPackagesAllowed:return GOT_ERROR, "
-                            + because PrivacyServiceException occurred");
+                            + "because PrivacyServiceException occurred");
                     return GOT_ERROR;
                 }
                 return IS_ALLOWED;
