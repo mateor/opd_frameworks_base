@@ -38,13 +38,13 @@ import android.privacy.utilities.PrivacyDebugger;
 //END PRIVACY 
 ///////////////////////////////////////////
 
-
 import android.hardware.Camera;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.view.Surface;
+
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -61,7 +61,7 @@ import java.lang.ref.WeakReference;
  *
  * <pre>MediaRecorder recorder = new MediaRecorder();
  * recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
- * recorder.setOutputFormat(MediaRecorder.OutputFormat.T    HREE_GPP);
+ * recorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
  * recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
  * recorder.setOutputFile(PATH_NAME);
  * recorder.prepare();
@@ -113,38 +113,34 @@ public class MediaRecorder
     private OnErrorListener mOnErrorListener;
     private OnInfoListener mOnInfoListener;
 
-
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    //BEGIN PRIVACY 
-    
+    //BEGIN PRIVACY
+
     /** default value of privacy path. You have to add the package name at the end to write 
      * file in directory of the app itself
      */
     private static final String PRIVACY_PATH_DEF = "/data/data/";
-    
+
     /**
      * This variable will be set if user use path to save file. Only if user is not allowed!
      */
     private String pPath = null;
-    
+
     /**
      * Path where Filedescriptor linked to.
      */
     private String pFileDescriptorPath = null;
-    
+
     /**
      * This variable will be set if user use FileDescriptor so save file.
      * Only if user is not allowed!
      */
     private FileDescriptor pFileDescriptor = null;
-    
-    
+
     private PrivacyRunner pRunner = null;
-    
-    
+
     private boolean deletedFile = false;
-    
-    
+
     private static final int STATE_RECORD_AUDIO = 0;
     private static final int STATE_RECORD_BOTH = 1;
     private static final int MODE_RECORD_AUDIO = 2;
@@ -162,21 +158,19 @@ public class MediaRecorder
      * {@hide} This context will ever be null, because we dont need it but pass it to the pSetMan!
      */
     private Context context;
-    
+
     private PrivacySettingsManager pSetMan;
-    
+
     private IPackageManager mPm;
-    
+
     private boolean privacyMode = false;
-    
+
     private boolean stoppedStream = false;
-    
+
     private int ACTUAL_STATE = STATE_RECORD_AUDIO;
-    
 
     //END PRIVACY
     ///////////////////////////////////////////////////////////////////////////////////////////////
-
 
     /**
      * Default constructor.
@@ -192,7 +186,6 @@ public class MediaRecorder
             mEventHandler = null;
         }
 
-
         ///////////////////////////////////////////////////////////////////////////////////////////
         //BEGIN PRIVACY
         
@@ -200,7 +193,6 @@ public class MediaRecorder
         
         //END PRIVACY
         ///////////////////////////////////////////////////////////////////////////////////////////
-
 
         /* Native setup requires a weak reference to our object.
          * It's easier to create it here than in C++.
@@ -243,10 +235,9 @@ public class MediaRecorder
     }
 
 
-
     ///////////////////////////////////////////////////////////////////////////////////////////////
     //BEGIN PRIVACY 
-    
+
     /**
      * PrivacyStop. Should be called within privacyRunner
      */
@@ -258,7 +249,7 @@ public class MediaRecorder
                     "Got exception while trying to call privacyStop()");
         }
     }
-    
+
     /**
      * This method search automatically the current package path and return it. If we haven't 
      * found any path, we return the path to SDcard if we are able to write to it.
@@ -273,7 +264,7 @@ public class MediaRecorder
         String current_package = null, data_name = value.nextLong() + ".tmp";
         FileWriter fWriter = null;
         File deleteMe = null;
-        
+
         for (int i=0;i<packages.length;i++) {
             try {
                 //first check if cache folder exist
@@ -325,8 +316,7 @@ public class MediaRecorder
             }
         }
     }
-    
-    
+
     /**
      * This method does exactly what the method getPrivacyPath() does,
      * but it returns an FileDescriptor to path
@@ -338,7 +328,7 @@ public class MediaRecorder
         String current_package = null, data_name = value.nextLong() + ".tmp";
         FileWriter fWriter = null;
         File deleteMe = null;
-        
+
         for (int i=0;i<packages.length;i++) {
             try {
                 //first check if cache folder exist
@@ -402,9 +392,7 @@ public class MediaRecorder
             }
         }
     }
-    
-    
-    
+
     /**
      * {@hide}
      * @return package names of current process which is using this object 
@@ -429,6 +417,7 @@ public class MediaRecorder
             return null;
         }
     }
+
     /**
      * {@hide}
      * This method should be used, because in some devices the uid has more than one package within!
@@ -442,13 +431,13 @@ public class MediaRecorder
             if (pSetMan == null) pSetMan = PrivacySettingsManager.getPrivacyService();
             PrivacySettings pSet = null;
             String[] package_names = getPackageName();
-            
+
             if (package_names == null) {
                 PrivacyDebugger.e(PRIVACY_TAG,"MediaRecorder:checkIfPackagesAllowed: "
                         + "return GOT_ERROR, because package_names are NULL");
                 return GOT_ERROR;
             }
-                
+
             switch(privacySetting) {
             case MODE_RECORD_AUDIO:   
                 try {
@@ -495,8 +484,7 @@ public class MediaRecorder
             return GOT_ERROR;
         }
     }
-    
-    
+
     /**
      * {@hide}
      * This method sets up all variables which are needed for privacy mode! It also writes to 
@@ -517,7 +505,7 @@ public class MediaRecorder
             privacyMode = false;
         }
     }
- 
+
      /**
      * Loghelper method, true = access successful, false = blocked access. 
      * {@hide}
@@ -558,8 +546,6 @@ public class MediaRecorder
     }
     //END PRIVACY
     ///////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
     /**
      * Defines the audio source. These constants are used with
@@ -919,8 +905,7 @@ public class MediaRecorder
      * is no guarantee that the recorder will have stopped by the time the
      * listener is notified.
      *
-     * @param max_duration_ms the maximum duration in ms (if zero or negative, 
-     * disables the duration limit)
+     * @param max_duration_ms the maximum duration in ms (if zero or negative, disables the duration limit)
      *
      */
     public native void setMaxDuration(int max_duration_ms) throws IllegalArgumentException;
@@ -935,8 +920,7 @@ public class MediaRecorder
      * is no guarantee that the recorder will have stopped by the time the
      * listener is notified.
      *
-     * @param max_filesize_bytes the maximum filesize in bytes (if zero or negative, 
-     * disables the limit)
+     * @param max_filesize_bytes the maximum filesize in bytes (if zero or negative, disables the limit)
      *
      */
     public native void setMaxFileSize(long max_filesize_bytes) throws IllegalArgumentException;
@@ -1076,7 +1060,14 @@ public class MediaRecorder
     {
         mPath = null;
         mFd = fd;
+
+        //////////////////////////////////////////////////////////////////////////
+        // BEGIN PRIVACY
+
         deletedFile = false;
+
+        // END PRIVACY
+        //////////////////////////////////////////////////////////////////////////
     }
 
     /**
@@ -1091,7 +1082,14 @@ public class MediaRecorder
     {
         mFd = null;
         mPath = path;
+
+        //////////////////////////////////////////////////////////////////////////
+        // BEGIN PRIVACY
+
         deletedFile = false;
+
+        // END PRIVACY
+        //////////////////////////////////////////////////////////////////////////
     }
 
     // native implementation
@@ -1185,9 +1183,6 @@ public class MediaRecorder
                 break;
         }
 
-        //END PRIVACY
-        ///////////////////////////////////////////////////////////////////////////////////////////
-
         String packageName[] = getPackageName();
         
         // **SM: Need to verify this code
@@ -1202,6 +1197,9 @@ public class MediaRecorder
             }
             deletedFile = true;
         }
+
+        //END PRIVACY
+        ///////////////////////////////////////////////////////////////////////////////////////////
 
         if (mPath != null) {
             FileOutputStream fos = new FileOutputStream(mPath);
@@ -1255,6 +1253,11 @@ public class MediaRecorder
      */
     public void reset() {
         native_reset();
+
+
+        ///////////////////////////////////////////////////////////////////////////////////////////
+        // BEGIN PRIVACY
+
         if (!deletedFile) {
             if (mPath != null) {
                 File tmp = new File(mPath);
@@ -1271,10 +1274,13 @@ public class MediaRecorder
                 deletedFile = false;
             }
         }
-        //
         pRunner = null;
         System.gc();
-        //
+
+        //END PRIVACY
+        ///////////////////////////////////////////////////////////////////////////////////////////
+
+
         // make sure none of the listeners get called anymore
         mEventHandler.removeCallbacksAndMessages(null);
     }
@@ -1555,6 +1561,10 @@ public class MediaRecorder
     private native void setParameter(String nameValuePair);
 
     @Override
+
+    ////////////////////////////////////////////////////////////////////////////
+    // BEGIN PRIVACY
+
     protected void finalize() { 
         
         if (!deletedFile) {
@@ -1574,34 +1584,30 @@ public class MediaRecorder
             }
         }
         native_finalize(); }
-    
-    
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    //BEGIN PRIVACY
-    
+
     /**
     * Helper class to interrupt stream.
     * @author CollegeDev
     * {@hide}
     */
     private class PrivacyRunner extends Thread {
-    
+
         private static final long OFFSET_DELAY = 2500;    
-        
+
         private long delay = OFFSET_DELAY;
-        
+
         public PrivacyRunner() {
-        
+
         }
-        
+
         public void setDelay(long delay) {
             this.delay = delay;
         }
-        
+
         public long getDelay() {
             return delay;
         }
-        
+
         @Override
         public void run() {
             try {
@@ -1630,7 +1636,7 @@ public class MediaRecorder
                 privacyStop();
             }
         }
-    
+
     }
 
     //END PRIVACY
