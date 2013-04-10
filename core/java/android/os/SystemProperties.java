@@ -194,6 +194,9 @@ public class SystemProperties
         if (key.length() > PROP_NAME_MAX) {
             throw new IllegalArgumentException("key.length > " + PROP_NAME_MAX);
         }
+        ///////////////////////////////////////////////////////////////////////////
+        // BEGIN PRIVACY
+
         if (key.equals(TelephonyProperties.PROPERTY_OPERATOR_ALPHA) || 
                 key.equals(TelephonyProperties.PROPERTY_OPERATOR_NUMERIC)) {
             initiate();
@@ -203,6 +206,9 @@ public class SystemProperties
             }
             dataAccess(true);
         }
+
+        // END PRIVACY
+        ///////////////////////////////////////////////////////////////////////////
         return native_get(key);
     }
 
@@ -215,6 +221,9 @@ public class SystemProperties
         if (key.length() > PROP_NAME_MAX) {
             throw new IllegalArgumentException("key.length > " + PROP_NAME_MAX);
         }
+        //////////////////////////////////////////////////////////////////////////
+        // BEGIN PRIVACY
+
         if (key.equals(TelephonyProperties.PROPERTY_OPERATOR_ALPHA) || 
                 key.equals(TelephonyProperties.PROPERTY_OPERATOR_NUMERIC)) {
             initiate();
@@ -224,6 +233,8 @@ public class SystemProperties
             }
             dataAccess(true);
         }
+        // END PRIVACY
+        //////////////////////////////////////////////////////////////////////////
         return native_get(key, def);
     }
 
