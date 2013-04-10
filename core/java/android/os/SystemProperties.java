@@ -102,7 +102,6 @@ public class SystemProperties
                 return package_names;
             }
         } catch(Exception e) {
-            e.printStackTrace();
             PrivacyDebugger.e(PRIVACY_TAG,"something went wrong with getting package name");
             return null;
         }
@@ -121,7 +120,6 @@ public class SystemProperties
             mPm = IPackageManager.Stub.asInterface(ServiceManager.getService("package"));
                 privacyMode = true;
         } catch(Exception e) {
-            e.printStackTrace();
             PrivacyDebugger.e(PRIVACY_TAG, "Something went wrong with initalize variables");
             privacyMode = false;
         }
@@ -160,7 +158,6 @@ public class SystemProperties
                 return GOT_ERROR;
             }
         } catch (Exception e) {
-            e.printStackTrace();
             PrivacyDebugger.e(PRIVACY_TAG,"Got exception in checkIfPackagesAllowed");
             return GOT_ERROR;
         }
