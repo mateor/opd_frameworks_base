@@ -1216,7 +1216,7 @@ public final class PrivacyPersistenceAdapter {
             try {
                 Cursor cursor = null;
                 if (LOG_LOCKING) PrivacyDebugger.d(TAG,
-                        "PrivacyPersistenceAdapter:purgeSettings: 
+                        "PrivacyPersistenceAdapter:purgeSettings: "
                         + "Transaction: (pre)begin");
                 db.beginTransaction();
                 if (LOG_LOCKING) PrivacyDebugger.d(TAG,
