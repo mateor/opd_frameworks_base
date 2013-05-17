@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -55,10 +56,9 @@ public final class PrivacyPersistenceAdapter {
     public static final int DUMMY_UID = -1;
 
     /**
-     * Number of threads currently reading the database Could probably be
-     * improved by using 'AtomicInteger'
+     * Thread safe object for determine how many threads currently have access to database
      */
-    public static volatile Integer sDbAccessThreads = 0;
+    private final AtomicInteger sdbAccessThreads = new AtomicInteger();
     public static volatile int sDbVersion;
 
     /**
@@ -423,9 +423,7 @@ public final class PrivacyPersistenceAdapter {
         String output = null;
 
         try {
-            synchronized (sDbAccessThreads) {
-                sDbAccessThreads++;
-            }
+            announceConnection();
             if (LOG_OPEN_AND_CLOSE) PrivacyDebugger.d(TAG, 
                     + "PrivacyPersistenceAdapter:getValue: "
                     + "Increment DB access threads: now " 
@@ -481,9 +479,7 @@ public final class PrivacyPersistenceAdapter {
         SQLiteDatabase db;
 
         try {
-            synchronized (sDbAccessThreads) {
-                sDbAccessThreads++;
-            }
+            announceConnection();
             if (LOG_OPEN_AND_CLOSE) PrivacyDebugger.d(TAG, 
                     "PrivacyPersistenceAdapter:setValue: Increment DB access threads: now "
                     + Integer.toString(sDbAccessThreads));
@@ -1014,9 +1010,7 @@ public final class PrivacyPersistenceAdapter {
 
         SQLiteDatabase db = null;
         try {
-            synchronized (sDbAccessThreads) {
-                sDbAccessThreads++;
-            }
+            announceConnection();
             if (LOG_OPEN_AND_CLOSE) PrivacyDebugger.d(TAG,
                     "PrivacyPersistenceAdapter:deleteSettings: "
                     + "Increment DB access threads: now " + Integer.toString(sDbAccessThreads));
@@ -1136,8 +1130,8 @@ public final class PrivacyPersistenceAdapter {
                 success = true;
             } catch (IllegalStateException e) {
                 success = false;
-                if (db != null && db.isOpen())
-                    db.close();
+                closeIdleDatabase();
+                announceConnection();
                 db = getDatabase();
             }
         }
@@ -1159,8 +1153,8 @@ public final class PrivacyPersistenceAdapter {
                 success = true;
             } catch (IllegalStateException e) {
                 success = false;
-                if (db != null && db.isOpen())
-                    db.close();
+                closeIdleDatabase();
+                announceConnection();
                 db = getDatabase();
             }
         }
@@ -1191,9 +1185,7 @@ public final class PrivacyPersistenceAdapter {
         SQLiteDatabase db = null;
 
         try {
-            synchronized (sDbAccessThreads) {
-                sDbAccessThreads++;
-            }
+            announceConnection();
             if (LOG_OPEN_AND_CLOSE) PrivacyDebugger.d(TAG, 
                     "PrivacyPersistenceAdapter:purgeSettings: "
                     + "Increment DB access threads: now " + Integer.toString(sDbAccessThreads));
@@ -1327,28 +1319,33 @@ public final class PrivacyPersistenceAdapter {
     }
 
     /**
+     * Call this method right before you lock the read or write access
+     */
+    private void announceConnection() {
+        int threads = dbThreads.incrementAndGet();
+        PrivacyDebugger.i(TAG, "current amount of dbThreads: " + threads);
+    }
+
+    /**
      * If there are no more threads reading the database, close it. Otherwise,
      * reduce the number of reading threads by one
      */
     private void closeIdleDatabase() {
-        synchronized (sDbAccessThreads) {
-            sDbAccessThreads--;
-            if (LOG_OPEN_AND_CLOSE) PrivacyDebugger.d(TAG,
-                    "PrivacyPersistenceAdapter:closeIdleDatabase: "
-                    + "Decrement DB access threads: now " + Integer.toString(sDbAccessThreads));
-            // only close DB if no other threads are reading
-            if (sDbAccessThreads == 0 && mDb != null && mDb.isOpen()) {
-                if (autoCloseDb) { 
-                    if (LOG_OPEN_AND_CLOSE) PrivacyDebugger.d(TAG,
-                            "PrivacyPersistenceAdapter:"
-                            + "closeIdleDatabase: Closing the PDroid database");
-                    mDb.close();
-                } else {
-                    if (LOG_OPEN_AND_CLOSE) PrivacyDebugger.d(TAG, 
-                            "PrivacyPersistenceAdapter:"
-                            + "closeIdleDatabase: Open and close DB disabled: not closing");
-                }
+        int threads = (sDbAccessThreads.get() > 0) ? sDbAccessThreads.decrementAndGet() : 0;
+        PrivacyDebugger.i(TAG,"amount of database threads: " + threads);
+        // only close DB if no other threads are reading
+        if (sDbAccessThreads == 0 && mDb != null && mDb.isOpen()) {
+            if (autoCloseDb) {
+                if (LOG_OPEN_AND_CLOSE) PrivacyDebugger.d(TAG,
+                        "PrivacyPersistenceAdapter:"
+                        + "closeIdleDatabase: Closing the PDroid database");
+                mDb.close();
+            } else {
+                if (LOG_OPEN_AND_CLOSE) PrivacyDebugger.d(TAG, 
+                        "PrivacyPersistenceAdapter:"
+                        + "closeIdleDatabase: Open and close DB disabled: not closing");
             }
         }
     }
+
 }
