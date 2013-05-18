@@ -430,6 +430,8 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
                 if (LOG_LOCKING) PrivacyDebugger.d(TAG, 
                         "PrivacyPersistenceAdapter:setValue: WriteLock: (post)unlock");
             }
+        } catch (Exception e) {
+            PrivacyDebugger.e(TAG, "got error while trying to set value: " + name + "to: " + value);
         } finally {
             Watchdog.onEndAuthorizedTransaction();
             closeIdleDatabase();
@@ -538,12 +540,15 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
                                 (byte) cursor.getShort(45), (byte) cursor.getShort(46));
     
                         // get allowed contacts IDs if necessary
+                        PrivacyDebugger.d(TAG, "getSettings - looking for allowed contacts for "
+                                + "privacySettings.get_id());
                         cursor = query(db, TABLE_ALLOWED_CONTACTS, 
                                 new String[] { "contact_id" },
                                 "settings_id=?",
                                 new String[] { Integer.toString(privacySettings.get_id()) },
                                 null,null, null, null);
                         if (cursor != null && cursor.getCount() > 0) {
+                            PrivacyDebugger.d(TAG, "getSettings - found allowed contacts");
                             int[] allowedContacts = new int[cursor.getCount()];
                             while (cursor.moveToNext())
                                 allowedContacts[cursor.getPosition()] = cursor.getInt(0);
@@ -569,7 +574,7 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
                     "PrivacyPersistenceAdapter:getSettings: ReadLock: (post)unlock");
             closeIdleDatabase();
         }
-        
+        PrivacyDebugger.d(TAG, "getSettings - returning settings: " + privacySettings);
         return privacySettings;
     }
 
@@ -584,6 +589,11 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
      */
     public boolean saveSettings(PrivacySettings s) {
         boolean result = false;
+
+        if(s == null) {
+            PrivacyDebugger.e(TAG, "settings are null, cannot save NULL to database!");
+            return false;
+        }
 
         String packageName = s.getPackageName();
 
@@ -687,6 +697,7 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
                         Integer id = s.get_id();
 
                         if (id != null) { // existing entry -> update
+                            PrivacyDebugger.d(TAG, "saveSettings - updating existing entry");
                             if (db.update(TABLE_SETTINGS, values, "_id=?", 
                                     new String[] { id.toString() }) < 1) {
                                 throw new Exception("saveSettings - "
@@ -710,16 +721,16 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
                             }
 
                         } else { // new entry -> insert if no duplicates exist
-                            // PrivacyDebugger.d(TAG,
-                            // "saveSettings - new entry; verifying if duplicates exist");
+                            PrivacyDebugger.d(TAG,
+                                    "saveSettings - new entry; verifying if duplicates exist");
                             cursor = db.query(TABLE_SETTINGS, 
                                     new String[] { "_id" }, "packageName=?",
                                     new String[] { s.getPackageName() }, null, null, null);
                             if (cursor != null) {
                                 if (cursor.getCount() == 1) { 
                                     // exactly one entry exists -> update
-                                    // PrivacyDebugger.d(TAG,
-                                    //         "saveSettings - updating existing entry");
+                                    PrivacyDebugger.d(TAG,
+                                             "saveSettings - updating existing entry");
                                     if (db.update(TABLE_SETTINGS, values, "packageName=?",
                                             new String[] { s.getPackageName() }) < 1) {
                                         throw new Exception("saveSettings - "
@@ -746,8 +757,8 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
                                         }
                                     }
                                 } else if (cursor.getCount() == 0) { // no entries -> insert
-                                    // Privacydebugger.d(TAG, 
-                                    //         "saveSettings - inserting new entry");
+                                    Privacydebugger.d(TAG, 
+                                             "saveSettings - inserting new entry");
                                     long rowId = db.insert(TABLE_SETTINGS, null, values);
                                     if (rowId == -1) {
                                         throw new Exception(
@@ -852,11 +863,12 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
     private boolean writeExternalSettings(String settingsName, String packageName, 
             PrivacySettings s) throws Exception {
         // save settings to plain text file (for access from core libraries)
+        PrivacyDebugger.d(TAG, "saveSettings - saving to plain text file");
         File settingsPackageDir = new File("/data/system/privacy/" + packageName + "/");
         File systemLogsSettingFile = new File("/data/system/privacy/" + packageName + "/" + "/"
                 + settingsName);
         boolean result = false;
-        
+
         if (LOG_LOCKING) PrivacyDebugger.d(TAG, 
                 "PrivacyPersistenceAdapter:writeExternalSettings: "
                 + "WriteLock: (pre)lock");
@@ -884,6 +896,7 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
             writer.close();
             result = true;
         } catch (IOException e) {
+            sDbLock.writeLock().unlock();
             // jump to catch block to avoid marking transaction as successful
             throw new Exception("saveSettings - could not write settings to file", e);
         } finally {
@@ -1000,6 +1013,10 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
             PrivacyDebugger.e(TAG, 
                     "PrivacyPersistenceAdapter:deleteSettings - could not delete settings", e);
         } finally {
+            if(c != null)
+                c.close();
+            if(db != null)
+                db.endTransaction();
             Watchdog.onEndAuthorizedTransaction();
             closeIdleDatabase();
         }
@@ -1191,7 +1208,7 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
             db.execSQL(INSERT_VERSION);
             db.execSQL(INSERT_ENABLED);
             db.execSQL(INSERT_NOTIFICATIONS_ENABLED);
-            // PrivacyDebugger.d(TAG, "createDatabase - closing connection to privacy.db");
+            PrivacyDebugger.d(TAG, "createDatabase - closing connection to privacy.db");
             if (db != null && db.isOpen())
                 db.close();
         } catch (SQLException e) {
