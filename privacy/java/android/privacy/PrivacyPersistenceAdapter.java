@@ -12,8 +12,10 @@
 
 package android.privacy;
 
+import android.app.ActivityManagerNative;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -21,6 +23,10 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.os.FileUtils;
+import android.os.RemoteException;
+import android.os.Process;
+
+import android.privacy.PrivacyWatchdog.PrivacyWatchdogInterface;
 import android.privacy.utilities.PrivacyDebugger;
 import android.util.Log;
 import android.util.LruCache;
@@ -31,6 +37,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,7 +51,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * 
  * @author Svyatoslav Hresyk {@hide}
  */
-public final class PrivacyPersistenceAdapter {
+public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface {
 
     private static final String TAG = "PrivacyPersistenceAdapter";
     private static final int RETRY_QUERY_COUNT = 5;
@@ -79,21 +86,22 @@ public final class PrivacyPersistenceAdapter {
      */
     public static final String SETTINGS_DIRECTORY = "/data/system/privacy";
 
-    
-    // The default cache size is somewhat arbitrary at the moment
-    // It may be valuable to run some analyses to check the average time
-    // between something being dropped from cache
-    // and being needed again. A recency-weighted LRU would be even better.
-    private static final int MINIMUM_CACHE_ENTRIES = 0;
-    private static final int DEFAULT_CACHE_ENTRIES = 10; 
-    //Because having privacy settings of 'null' has meaning
-    private static LruCache<String, PrivacySettingsStub> settingsCache = new LruCache<String, 
-            PrivacySettingsStub>(DEFAULT_CACHE_ENTRIES);
+    /**
+     * Used for caching some settings
+     */
+    private PrivacyCache mCache = new PrivacyCache();
+
+    /**
+     * Since we're not able to extend from SQLiteDatabase we have to call the onauthorized methods on every write access to database!
+     */
+    private PrivacyWatchdog Watchdog;
 
     private static final String TABLE_SETTINGS = "settings";
     private static final String TABLE_MAP = "map";
     private static final String TABLE_ALLOWED_CONTACTS = "allowed_contacts";
     private static final String TABLE_VERSION = "version";
+
+    private static final String RECEIVE_FAIL_SAFE_TRIGGERED = "android.privacy.RECEIVE_FAIL_SAFE_TRIGGERED";
 
     private static final String CREATE_TABLE_SETTINGS = 
         "CREATE TABLE IF NOT EXISTS " + TABLE_SETTINGS + " ( " + 
@@ -191,67 +199,22 @@ public final class PrivacyPersistenceAdapter {
 
     private Context mContext;
 
-    
-    /**
-     * START DEBUG FUNCTIONS
-     */
-    void setUseCache(boolean value) {
-        useCache = value;
-        if (value) {
-            if (LOG_CACHE) PrivacyDebugger.d(TAG, 
-                    "PrivacyPersistenceAdapter:setCacheSize: Cache enabled");
-        } else {
-            if (LOG_CACHE) PrivacyDebugger.d(TAG, 
-                    "PrivacyPersistenceAdapter:setCacheSize: Cache disabled");
-        }
-    }
-    
-    boolean getUseCache() {
-        return useCache;
-    }
-    
-    void setOpenAndCloseDb(boolean value) {
-        autoCloseDb = value;
-        if (value) {
-            if (LOG_OPEN_AND_CLOSE) PrivacyDebugger.d(TAG,
-                    "PrivacyPersistenceAdapter:setOpenAndCloseDb: "
-                    + "Open and close enabled");
-        } else {
-            if (LOG_OPEN_AND_CLOSE) PrivacyDebugger.d(TAG, 
-                    "PrivacyPersistenceAdapter:setOpenAndCloseDb: "
-                    + "Open and close disabled");
-        }
-    }
-    
-    boolean getOpenAndCloseDb() {
-        return this.autoCloseDb;
-    }
-    
-    void setCacheSize(int newSize) {
-        settingsCache.resize(newSize);
-        if (LOG_CACHE) PrivacyDebugger.d(TAG, 
-                "PrivacyPersistenceAdapter:setCacheSize: Resized cache to " 
-                + Integer.toString(newSize));
-    }
-    
-    int getCacheSize() {
-        return settingsCache.size();
-    }
-    /**
-     * END DEBUG FUNCTIONS
-     */
+    private boolean isFailSaveActive = false;
 
-    
-    
     public PrivacyPersistenceAdapter(Context context) {
         this.mContext = context;
 
+        Watchdog = new PrivacyWatchdog(this);
+        PrivacyDebugger.d(TAG, "Constructing " + TAG + " for package: " +  context.getPackageName()
+                + "; Write permission for /data/system/: " + canWrite);
         // create the database and settings directory if we have write
         // permission and they do not exist
-        if (new File("/data/system/").canWrite()) { 
+        if (new File("/data/system/").canWrite()) {
             if (!(new File(DATABASE_FILE).exists() && new File(SETTINGS_DIRECTORY).exists())) {
                 if (LOG_LOCKING) PrivacyDebugger.d(TAG, 
                         "PrivacyPersistenceAdapter:constructor: WriteLock: (pre)lock");
+                announceConnection();
+                Watchdog.onBeginAuthorizedTransaction();
                 sDbLock.writeLock().lock();
                 if (LOG_LOCKING) PrivacyDebugger.d(TAG, 
                         "PrivacyPersistenceAdapter:constructor: WriteLock: (post)lock");
@@ -262,21 +225,24 @@ public final class PrivacyPersistenceAdapter {
                     if (!new File(SETTINGS_DIRECTORY).exists()) {
                         createSettingsDir();
                     }
+                    sDbVersion = getDbVersion();
+                    PrivacyDebugger.d(TAG, "PrivacyPersistenceAdapter - current DB version: " + currentVersion);
+                    if (sDbVersion < DATABASE_VERSION) {
+                        upgradeDatabase();
+                    }
+                    fillPrivacyCache();
+                } catch(Exception e) {
+                    PrivacyDebugger.e(TAG, "got exception while trying to create database and/or"
+                            + "settingsDirectories");
                 } finally {
                     if (LOG_LOCKING) PrivacyDebugger.d(TAG,
                             "PrivacyPersistenceAdapter:constructor: WriteLock: (pre)unlock");
                     sDbLock.writeLock().unlock();
                     if (LOG_LOCKING) PrivacyDebugger.d(TAG, 
                             "PrivacyPersistenceAdapter:constructor: WriteLock: (post)unlock");
+                    Watchdog.onEndAuthorizedTransaction();
+                    closeIdleDatabase();
                 }
-            }
-
-
-            // upgrade if needed
-            sDbVersion = getDbVersion();
-            
-            if (sDbVersion < DATABASE_VERSION) {
-                upgradeDatabase();
             }
         }
     }
@@ -284,121 +250,75 @@ public final class PrivacyPersistenceAdapter {
 
     private void upgradeDatabase() {
         if (sDbVersion < DATABASE_VERSION) {
-            PrivacyDebugger.i(TAG, "PrivacyPersistenceAdapter:upgradeDatabase - "
-                    + "upgrading DB from version" sDbVersion + " to " + DATABASE_VERSION);
+            PrivacyDebugger.i(TAG, "upgradeDatabase - upgrading DB from version " + currentVersion + " to " + DATABASE_VERSION);
 
-            SQLiteDatabase db = null;
-            
-            switch (sDbVersion) {
-            case 1:
-            case 2:
-            case 3:
-                try {
-                    synchronized (sDbAccessThreads) {
-                        sDbAccessThreads++;
-                    }
-                    if (LOG_OPEN_AND_CLOSE) PrivacyDebugger.d(TAG,
-                            "PrivacyPersistenceAdapter:upgradeDatabase: "
-                            + "Increment DB access threads: now " 
-                            + Integer.toString(sDbAccessThreads));
+        announceConnection();
+        sDbLock.writeLock().lock();
+        Watchdog.onBeginAuthorizedTransaction();
+        SQLiteDatabase db = null;
 
-                    db = getDatabase();
+        try {
+            db = getDatabase();
+            db.beginTransaction();
+            switch (currentVersion) {
+                case 1:
+                case 2:
+                case 3:
                     if (db != null && db.isOpen()) {
-                        if (LOG_LOCKING) PrivacyDebugger.d(TAG,
-                                "PrivacyPersistenceAdapter:upgradeDatabase: "
-                                + "WriteLock: (pre)lock");
-                        sDbLock.writeLock().lock();
-                        if (LOG_LOCKING) PrivacyDebugger.d(TAG,
-                                "PrivacyPersistenceAdapter:upgradeDatabase: "
-                                + "WriteLock: (post)lock");
-                        try {
-                            // check the db version again to make sure that another thread 
-                            // has not already done the upgrade in the meantime
-                            if (sDbVersion < DATABASE_VERSION) {
-                                if (LOG_LOCKING) PrivacyDebugger.d(TAG, 
-                                        "PrivacyPersistenceAdapter:"
-                                        + "upgradeDatabase: Transaction: (pre)begin");
-                                db.beginTransaction();
-                                if (LOG_LOCKING) PrivacyDebugger.d(TAG,
-                                        "PrivacyPersistenceAdapter:"
-                                        + "upgradeDatabase: Transaction: (post)begin");
-                                try {
-                                    db.execSQL("DROP TABLE IF EXISTS "
-                                            + TABLE_VERSION + ";");
-                                    db.execSQL(CREATE_TABLE_ALLOWED_CONTACTS);
-                                    db.execSQL(CREATE_TABLE_MAP);
-                                    db.execSQL(INSERT_VERSION);
-                                    db.execSQL(INSERT_ENABLED);
-                                    db.execSQL(INSERT_NOTIFICATIONS_ENABLED);
+                        db.execSQL("DROP TABLE IF EXISTS " + TABLE_VERSION + ";");
+                        db.execSQL(CREATE_TABLE_ALLOWED_CONTACTS);
+                        db.execSQL(CREATE_TABLE_MAP);
+                        db.execSQL(INSERT_VERSION);
+                        db.execSQL(INSERT_ENABLED);
+                        db.execSQL(INSERT_NOTIFICATIONS_ENABLED);
 
-                                    purgeSettings();
-
-                                    // remove uid dirs from the settings directory
-                                    // TODO: improve handling so that if an exception 
-                                    // happens while this process is in progress, it doesn't 
-                                    // leave the  filesystem entries in an invalid state
-                                    File settingsDir = new File(SETTINGS_DIRECTORY);
-                                    for (File packageDir : settingsDir.listFiles()) {
-                                        for (File uidDir : packageDir.listFiles()) {
-                                            if (uidDir.isDirectory()) {
-                                                File[] settingsFiles = uidDir.listFiles();
-                                                // copy the first found (most likely
-                                                // the only one) one level up
-                                                if (settingsFiles[0] != null) {
-                                                    File newPath = new File(packageDir + "/"
-                                                            + settingsFiles[0].getName());
-                                                    newPath.delete();
-                                                    settingsFiles[0].renameTo(newPath);
-                                                    deleteRecursive(uidDir);
-                                                }
-                                            }
-                                        }
+                        // remove uid dirs from the settings directory
+                        File settingsDir = new File(SETTINGS_DIRECTORY);
+                        for (File packageDir : settingsDir.listFiles()) {
+                            for (File uidDir : packageDir.listFiles()) {
+                                if (uidDir.isDirectory()) {
+                                    File[] settingsFiles = uidDir.listFiles();
+                                    // copy the first found (most likely the only one) one level up
+                                    if (settingsFiles[0] != null) {
+                                        File newPath = new File(packageDir + "/" + settingsFiles[0].getName());
+                                        newPath.delete();
+                                        settingsFiles[0].renameTo(newPath);
+                                        deleteRecursive(uidDir);
                                     }
-    
-                                    db.setTransactionSuccessful();
-                                    sDbVersion = DATABASE_VERSION;
-                                } finally {                                
-                                    if (LOG_LOCKING) PrivacyDebugger.d(TAG,
-                                            "PrivacyPersistenceAdapter:"
-                                            + "upgradeDatabase: Transaction: (pre)end");
-                                    db.endTransaction();
-                                    if (LOG_LOCKING) PrivacyDebugger.d(TAG,
-                                            "PrivacyPersistenceAdapter:"
-                                            + "upgradeDatabase: Transaction: (post)end");
                                 }
-                            } else {
-                                // The database has been upgraded elsewhere; end the db 
-                                // transaction and don't make any further changes
                             }
-
-                        } finally {
-                            if (LOG_LOCKING) PrivacyDebugger.d(TAG,
-                                    "PrivacyPersistenceAdapter:"
-                                    + "upgradeDatabase: WriteLock: (pre)unlock");
-                            sDbLock.writeLock().unlock();
-                            if (LOG_LOCKING) PrivacyDebugger.d(TAG,
-                                    "PrivacyPersistenceAdapter:"
-                                    + "upgradeDatabase: WriteLock: (post)unlock");
                         }
-                    }
-                } catch (SQLException e) {
-                    PrivacyDebugger.e(TAG, "PrivacyPersistenceAdapter:upgradeDatabase:"
-                            + "SQLException occurred performing database upgrade", e);
-                } finally {
-                    closeIdleDatabase();
-                }
-                break;
 
-            case 4:
-                // most current version, do nothing
-                PrivacyDebugger.i(TAG, "PrivacyPersistenceAdapter:upgradeDatabase: "
-                        + "Database is already at the most recent version");
-                break;
+                        db.setTransactionSuccessful();
+                    } else {
+                        PrivacyDebugger.e(TAG, "cannot upgrade database because database is null or isn't open!");
+                    }
+                    break;
+
+                case 4:
+                    if (db != null && db.isOpen()) {
+                        db.execSQL("DROP TABLE IF EXISTS " + TABLE_VERSION + ";");
+                        db.execSQL("DROP TABLE IF EXISTS " + TABLE_SETTINGS + ";");
+                        db.execSQL(CREATE_TABLE_SETTINGS);
+                        db.execSQL(INSERT_VERSION);
+
+                        db.setTransactionSuccessful();
+                    } else {
+                        PrivacyDebugger.e(TAG, "cannot upgrade database because database is null or isn't open!");
+                    }
+                    break;
             }
+            purgeSettings();
+        } catch(Exception e) {
+            PrivacyDebugger.w(TAG, "upgradeDatabase - could not upgrade DB", e);
+        } finally {
+            watchDog.onEndAuthorizedTransaction();
+            sDbLock.writeLock().lock();
+            closeIdleDatabase();
+
         }
     }
 
-    
     private int getDbVersion() {
         String versionString = getValue(SETTING_DB_VERSION);
         if (versionString == null) {
@@ -480,6 +400,7 @@ public final class PrivacyPersistenceAdapter {
 
         try {
             announceConnection();
+            Watchdog.onBeginAuthorizedTransaction();
             if (LOG_OPEN_AND_CLOSE) PrivacyDebugger.d(TAG, 
                     "PrivacyPersistenceAdapter:setValue: Increment DB access threads: now "
                     + Integer.toString(sDbAccessThreads));
@@ -508,12 +429,17 @@ public final class PrivacyPersistenceAdapter {
                         "PrivacyPersistenceAdapter:setValue: WriteLock: (post)unlock");
             }
         } finally {
+            Watchdog.onEndAuthorizedTransaction();
             closeIdleDatabase();
         }
 
         return success;
     }
-    
+
+    public PrivacySettings getSettings(String packageName) {
+        return getSettings(packageName, false);
+    }
+
     /**
      * Retrieve privacy settings for a single package
      * 
@@ -530,33 +456,18 @@ public final class PrivacyPersistenceAdapter {
                     "PrivacyPersistenceAdapter:getSettings:insufficient application "
                             + "identifier - package name is required");
         }
-
-        if (useCache) {
-            PrivacySettingsStub cacheResult = settingsCache.get(packageName);
-            if (cacheResult != null) {
-                if (LOG_CACHE) PrivacyDebugger.d(TAG, 
-                        "PrivacyPersistenceAdapter:getSettings: Cache hit for " 
-                        + packageName);
-                // if the cached object is a stub, then it means that 
-                // there is no privacy settings 
-                // for that package, and null should be returned
-                if (cacheResult instanceof PrivacySettings) {
-                    if (LOG_CACHE) PrivacyDebugger.d(TAG, "PrivacyPersistenceAdapter:"
-                            + "Cached result is not a stub:" + packageName);
-                    return (PrivacySettings)cacheResult;
-                } else {
-                    if (LOG_CACHE) PrivacyDebugger.d(TAG, 
-                            "PrivacyPersistenceAdapter:Cached result is a stub, "
-                            + "return null:" + packageName);
-                    return null;
-                }
-            } else {
-                if (LOG_CACHE) PrivacyDebugger.d(TAG, 
-                        "PrivacyPersistenceAdapter:getSettings: Cache miss for " 
-                        + packageName);
-            }
+        if(isFailSafeActive() && !fillCache) { 
+            PrivacyDebugger.w(TAG,"failSafeMode is active -> return blocked privacy object!");
+            return PrivacySettings.getFailSaveObject();
         }
         
+        if(mCache.containsSetting(packageName)) {
+            return mCache.getSettings(packageName);
+        }
+
+        announceConnection();
+        sDbLock.readLock().lock();
+
         SQLiteDatabase db;
         try {
             // indicate that the DB is being read to prevent closing by other threads
@@ -635,25 +546,14 @@ public final class PrivacyPersistenceAdapter {
                             while (cursor.moveToNext())
                                 allowedContacts[cursor.getPosition()] = cursor.getInt(0);
                             privacySettings.setAllowedContacts(allowedContacts);
+                            PrivacyDebugger.d(TAG, "getSettings - found settings entry for package: " + packageName);
+                            mCache.updateOrSaveSettings(s); 
+                        } else {
+                           PrivacyDebugger.e(TAG, "getSettings - no settings found for package: " + packageName);
                         }
                     }
                 }
             }
-            
-            if (useCache) {
-                if (privacySettings != null) {
-                    settingsCache.put(packageName, privacySettings);
-                    if (LOG_CACHE) PrivacyDebugger.d(TAG,
-                            "PrivacyPersistenceAdapter:getSettings: "
-                            + "Cache put for" + packageName);
-                } else {
-                    settingsCache.put(packageName, new PrivacySettingsStub());
-                    if (LOG_CACHE) PrivacyDebugger.d(TAG, 
-                            "PrivacyPersistenceAdapter:getSettings: "
-                            + "Cache stub put for" + packageName);
-                }
-            }
-            
         } catch (Exception e) {
             PrivacyDebugger.e(TAG, "getSettings - failed to get settings for package: " 
                     + packageName, e);
@@ -747,6 +647,9 @@ public final class PrivacyPersistenceAdapter {
         values.put("forceOnlineState", s.getForceOnlineState());
         values.put("switchWifiStateSetting", s.getSwitchWifiStateSetting());
 
+        announceConnection();
+        sDbLock.writeLock().lock();
+        Watchdog.onBeginAuthorizedTransaction();
         SQLiteDatabase db = null;
         Cursor cursor = null;
 
@@ -892,15 +795,8 @@ public final class PrivacyPersistenceAdapter {
 
                         // mark DB transaction successful (commit the changes)
                         db.setTransactionSuccessful();
-                        
-                        if (useCache) {
-                            //TODO: determine where this should actually go (i.e. should we 
-                            //delete from cache even if we fail to save the settings?)
-                            settingsCache.remove(packageName);
-                            if (LOG_CACHE) PrivacyDebugger.d(TAG, 
-                                    "PrivacyPersistenceAdapter:deleteSettings: "
-                                    + "Cache remove for" + packageName);
-                        }
+                        mCache.updateOrSaveSettings(s);
+                        PrivacyDebugger.d(TAG, "saveSettings - completing transaction");
                     } finally {
                         if (LOG_LOCKING) PrivacyDebugger.d(TAG,
                                 "PrivacyPersistenceAdapter:saveSettings: "
@@ -931,6 +827,7 @@ public final class PrivacyPersistenceAdapter {
             PrivacyDebugger.e(TAG, "PrivacyPersistenceAdapter:saveSettings: saving for "
                     + packageName + " failed", e);
         } finally {
+            Watchdog.onEndAuthorizedTransaction();
             closeIdleDatabase();
         }
 
@@ -1007,10 +904,11 @@ public final class PrivacyPersistenceAdapter {
      */
     public boolean deleteSettings(String packageName) {
         boolean result = true;
-
+        announceConnection();
+        Watchdog.onBeginAuthorizedTransaction();
         SQLiteDatabase db = null;
-        try {
-            announceConnection();
+ 
+       try {
             if (LOG_OPEN_AND_CLOSE) PrivacyDebugger.d(TAG,
                     "PrivacyPersistenceAdapter:deleteSettings: "
                     + "Increment DB access threads: now " + Integer.toString(sDbAccessThreads));
@@ -1071,15 +969,7 @@ public final class PrivacyPersistenceAdapter {
                         settingsPackageDir.delete();
 
                     db.setTransactionSuccessful();
-
-                    if (useCache) {
-                        //TODO: determine where this should actually go (i.e. should we 
-                        //delete from cache even if we fail to delete the settings?)
-                        settingsCache.remove(packageName);
-                        if (LOG_CACHE) PrivacyDebugger.d(TAG,
-                                "PrivacyPersistenceAdapter:deleteSettings: "
-                                + "Cache remove for" + packageName);
-                    }
+                    mCache.deleteSettings(packageName);
                 } finally {
                     if (LOG_LOCKING) PrivacyDebugger.d(TAG,
                             "PrivacyPersistenceAdapter:deleteSettings: "
@@ -1108,6 +998,7 @@ public final class PrivacyPersistenceAdapter {
             PrivacyDebugger.e(TAG, 
                     "PrivacyPersistenceAdapter:deleteSettings - could not delete settings", e);
         } finally {
+            Watchdog.onEndAuthorizedTransaction();
             closeIdleDatabase();
         }
 
@@ -1182,6 +1073,8 @@ public final class PrivacyPersistenceAdapter {
             apps.add(appInfo.packageName);
         }
 
+        announceConnection();
+        Watchdog.onBeginAuthorizedTransaction();
         SQLiteDatabase db = null;
 
         try {
@@ -1264,6 +1157,7 @@ public final class PrivacyPersistenceAdapter {
                     "PrivacyPersistenceAdapter:purgeSettings - purging DB failed", e);
             result = false;
         } finally {
+            Watchdog.onEndAuthorizedTransaction();
             closeIdleDatabase();
         }
 
@@ -1281,6 +1175,7 @@ public final class PrivacyPersistenceAdapter {
 
     private void createDatabase() {
         PrivacyDebugger.i(TAG, "createDatabase - creating privacy database file");
+        Watchdog.onBeginAuthorizedTransaction();
         try {
             SQLiteDatabase db = SQLiteDatabase.openDatabase(DATABASE_FILE, null,
                     SQLiteDatabase.OPEN_READWRITE | SQLiteDatabase.CREATE_IF_NECESSARY);
@@ -1296,7 +1191,57 @@ public final class PrivacyPersistenceAdapter {
                 db.close();
         } catch (SQLException e) {
             PrivacyDebugger.e(TAG, "createDatabase - failed to create privacy database", e);
+        } finally {
+            Watchdog.onEndAuthorizedTransaction();
+    }
+
+    /**
+     * @author: CollegeDev
+     */
+    @Override
+    public void onUnauthorizedDatabaseAccess(int msg) {
+
+        if(isFailSafeActive()) return; //prevents hammering -> only oneshot possible
+        //make sure you only call thread safe methods!
+        try {
+            setFailSafeMode(true);
+            Watchdog.onBeginAuthorizedTransaction();
+            // inform user first
+            Intent intent = new Intent();
+            Intent backup = new Intent();
+            PrivacyDebugger.e(TAG,"recognized unauthorized databaseaccess. Reason: " + Watchdog.msgToString(msg));
+            intent.setAction(PrivacySettingsManager.ACTION_FAIL_SAFE_MODE_TRIGGERED);
+            intent.putExtra(PrivacyWatchdog.MSG_WHAT_INT, msg);
+            intent.putExtra(PrivacyWatchdog.MSG_WHAT_STRING, Watchdog.msgToString(msg));
+            context.sendBroadcast(intent, RECEIVE_FAIL_SAFE_TRIGGERED);
+
+            Watchdog.startWatching();
+            //now try to recover
+            ArrayList<String> recovery = tryRecoverFromCache();
+
+            //inform user!
+            if(recovery.isEmpty()) { 
+                backup.setAction(PrivacySettingsManager.ACTION_FAIL_SAFE_BACKUP_COMPLETE);
+                context.sendBroadcast(backup, RECEIVE_FAIL_SAFE_TRIGGERED);
+            } else {// some settings can't be saved, inform user about that!
+                backup.putStringArrayListExtra(PrivacyWatchdog.MSG_RECOVERY_FAIL_INFO, recovery);
+                backup.setAction(PrivacySettingsManager.ACTION_FAIL_SAFE_BACKUP_FAILED);
+                context.sendBroadcast(backup, RECEIVE_FAIL_SAFE_TRIGGERED);
+            }
+        } catch (Exception e) {
+            PrivacyDebugger.e(TAG,"something went totally wrong in onUnauthorizedDatabaseAccess()");
+        } finally {
+            Watchdog.onEndAuthorizedTransaction();
         }
+    }
+
+    /**
+     * @author: CollegeDev
+     */
+    @Override
+    public void onWatchdogFinalize(boolean authorizedAccessInProgress) {
+        PrivacyDebugger.w(TAG,"got information that Watchdog is dead, initiate a new one!");
+        Watchdog = new PrivacyWatchdog(this, authorizedAccessInProgress);
     }
 
     private void createSettingsDir() {
@@ -1316,6 +1261,80 @@ public final class PrivacyPersistenceAdapter {
             mDb = SQLiteDatabase.openDatabase(DATABASE_FILE, null, SQLiteDatabase.OPEN_READWRITE);
         }   
         return mDb;
+    }
+
+    /**
+     * 
+     * @return true if failsafemode is active, false otherwise
+     */
+    public boolean isFailSafeActive () {
+        return isFailSaveActive;
+    }
+
+    /**
+     * Only call it after boot is ready and failSafeMode was not deactivated by user or to deactivate the fail safe mode
+     * @param state true -> activates the failSafeMode, false -> deactivates the failSafeMode
+     */
+    public void setFailSafeMode(boolean state) {
+        PrivacyDebugger.w(TAG,"setFailSafeMode() got a call, do you really want that?!");
+        isFailSaveActive = state;
+    }
+
+    /**
+     * Fills the complete cache with all data from database
+     * Only call this method in constructor
+     */
+    private synchronized void fillPrivacyCache() {
+        PrivacyDebugger.i(TAG, "on entry fillPrivacyCache()");
+        List<ApplicationInfo> apps = context.getPackageManager().getInstalledApplications(0);
+        for (ApplicationInfo appInfo : apps) { 
+            PrivacyDebugger.i(TAG,"filling cache for package: " + appInfo.packageName);
+            getSettings(appInfo.packageName, true); //only call it 
+        }
+        PrivacyDebugger.i(TAG,"on exit fillPrivacyCache()");
+    }
+
+    /**
+     * Recovers all settings from current cache to database. Call this method 
+     * if database base is empty only!
+     * @return true, if <b>all</b> settings have been successful saved, false otherwise
+     */
+    private ArrayList<String> tryRecoverFromCache() {
+        ArrayList<String> output = new ArrayList<String>();
+        announceConnection();
+        sDbLock.writeLock().lock();
+        Watchdog.onBeginAuthorizedTransaction();
+        mCache.markAllAsNewEntry();
+        PrivacyDebugger.i(TAG,"now trying to recover settings from cache!");
+        try {
+            // TODO: speed this up by leaving the database open!!
+            ArrayList<PrivacySettings> settings = mCache.getAllSetings();
+            for(PrivacySettings insertion : settings) {
+                if(!saveSettings(insertion)) {
+                    output.add(insertion.getPackageName());
+                    PrivacyDebugger.e(TAG,"restore failed for package: " + insertion.getPackageName());
+                } 
+            }
+            mCache.removeAll();
+            if(settings.size() == output.size()) {
+                PrivacyDebugger.e(TAG, "nothing can't be restore :-! ?");
+            } else {
+                fillPrivacyCache();
+            }
+
+        } catch (Exception e) {
+            PrivacyDebugger.e(TAG,"something went wrong while trying to recover settings from cache after unauthorized database access!");
+
+        } finally {
+            if(output.isEmpty())
+                PrivacyDebugger.i(TAG,"successful recovered ALL settings from cache");
+            else 
+                PrivacyDebugger.e(TAG, "wasn't able to recover all settings?!");
+            Watchdog.onEndAuthorizedTransaction();
+            sDbLock.writeLock().unlock();
+            closeIdlingDatabase();
+        }
+        return output;
     }
 
     /**
