@@ -56,6 +56,7 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
     private static final String TAG = "PrivacyPersistenceAdapter";
     private static final int RETRY_QUERY_COUNT = 5;
     private static final String DATABASE_FILE = "/data/system/privacy.db";
+    private static final String DATABASE_JOURNAL_FILE = "/data/system/privacy.db-journal";
     private static final int DATABASE_VERSION = 4;
     private static final boolean LOG_LOCKING = true;
     private static final boolean LOG_OPEN_AND_CLOSE = true;
@@ -302,6 +303,7 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
                         db.execSQL(CREATE_TABLE_SETTINGS);
                         db.execSQL(INSERT_VERSION);
 
+                        removeFiles(SETTINGS_DIRECTORY);
                         db.setTransactionSuccessful();
                     } else {
                         PrivacyDebugger.e(TAG, "cannot upgrade database because database is null or isn't open!");
@@ -1163,8 +1165,11 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
 
         return result;
     }
-    
 
+    /**
+     * @deprecated
+     * @param fileOrDirectory
+     */
     private void deleteRecursive(File fileOrDirectory) {
         if (fileOrDirectory.isDirectory()) {
             for (File child : fileOrDirectory.listFiles())
@@ -1215,6 +1220,10 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
             intent.putExtra(PrivacyWatchdog.MSG_WHAT_STRING, Watchdog.msgToString(msg));
             context.sendBroadcast(intent, RECEIVE_FAIL_SAFE_TRIGGERED);
 
+            // try to handle our self!
+           deleteCompleteSettings();
+            reinitAll();
+            //once again to be sure!
             Watchdog.startWatching();
             //now try to recover
             ArrayList<String> recovery = tryRecoverFromCache();
@@ -1295,6 +1304,45 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
     }
 
     /**
+     * Deletes the given folder or files and all sub-directories with files
+     * @param path path t
+     */
+    private void removeFiles(String path) {
+        File file = new File(path);
+        PrivacyDebugger.w(TAG, "deleting now file(s) or folder(s): " + file.getAbsolutePath());
+        if (file.exists()) {
+            String cmd = "rm -r " + path;
+            Runtime runtime = Runtime.getRuntime();
+            try {
+                runtime.exec(cmd);
+                PrivacyDebugger.i(TAG, "deleted file(s) or folder(s) successful");
+            } catch (IOException e) { 
+                PrivacyDebugger.e(TAG, "Got IOException while trying to delete file(s) or folder(s)", e);
+            } catch (Exception e) {
+                PrivacyDebugger.e(TAG, "Got Exception while trying to delete file(s) or folder(s)", e);
+            }
+        } else {
+            PrivacyDebugger.e(TAG,"can't delete file(s) or folder(s) for path: " + file.getAbsolutePath()
+                    + " because it doesn't exists");
+        }
+    }
+    
+    /**
+     * Deletes all PrivacySettings files:
+     *      - Database 
+     *      - Database journal file
+     *      - Settingsdirectory
+     *  It also stops monitoring on privacy.db (for Watchdog)
+     */
+    private void deleteCompleteSettings() {
+        if(Watchdog != null) 
+            Watchdog.stopWatching();
+        removeFiles(DATABASE_JOURNAL_FILE);
+        removeFiles(DATABASE_FILE);
+        removeFiles(SETTINGS_DIRECTORY);
+    }
+
+    /**
      * Recovers all settings from current cache to database. Call this method 
      * if database base is empty only!
      * @return true, if <b>all</b> settings have been successful saved, false otherwise
@@ -1323,7 +1371,8 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
             }
 
         } catch (Exception e) {
-            PrivacyDebugger.e(TAG,"something went wrong while trying to recover settings from cache after unauthorized database access!");
+            PrivacyDebugger.e(TAG,"something went wrong while trying to recover settings from cache "
+                    + "after unauthorized database access!");
 
         } finally {
             if(output.isEmpty())
@@ -1366,5 +1415,45 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
             }
         }
     }
+
+    /**
+     * Reinit the whole set (privacy db, privacy settings dir, ...)
+     * Only call this method after you called the deleteCompleteSettings() method!
+     * this also triggers the Watchdog to watch on privacy.db
+     *
+     * @author: CollegeDev
+     */
+    private void reinitAll() {
+        boolean canWrite = new File("/data/system/").canWrite();
+        PrivacyDebugger.i(TAG, "called reinitAll() - canWrite: " + canWrite);
+        if (canWrite) {
+            PrivacyDebugger.i(TAG,"we're able to write, create complete new set now");
+            announceConnection();
+            sDbLock.writeLock().lock();
+            Watchdog.onBeginAuthorizedTransaction();
+            try {
+                if (!new File(DATABASE_FILE).exists()) 
+                    createDatabase();
+                if(Watchdog != null)
+                    Watchdog.startWatching();
+                if (!new File(SETTINGS_DIRECTORY).exists()) 
+                    createSettingsDir();
+                int currentVersion = getDbVersion();
+                PrivacyDebugger.d(TAG, "PrivacyPersistenceAdapter - current DB version: " + currentVersion);
+                if (currentVersion < DATABASE_VERSION) 
+                    upgradeDatabase(currentVersion);
+
+            } catch(Exception e) {
+                PrivacyDebugger.e(TAG, "got exception while trying to create database and/or "
+                        + "settingsDirectories for reinitializing!");
+            } finally {
+                PrivacyDebugger.i(TAG,"successful reinitialized the whole set");
+                Watchdog.onEndAuthorizedTransaction();
+                sDbLock.writeLock().unlock();
+                closeIdlingDatabase();
+            }
+        }
+    }
+
 
 }
