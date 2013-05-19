@@ -36,9 +36,9 @@ public final class PrivacySettings extends PrivacySettingsStub implements Parcel
 
     /**
      * Error occurred while obtaining the setting
-     * This is currently the same as EMPTY for backward compatibility, but that will be revised
+     *
      */
-    public static final byte ERROR = 1;
+    public static final byte ERROR = 4;
 
     /**
      * Real value, provided by the unmodified Android framework.
