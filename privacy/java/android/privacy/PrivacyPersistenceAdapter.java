@@ -564,6 +564,14 @@ public final class PrivacyPersistenceAdapter implements PrivacyWatchdogInterface
         } catch (Exception e) {
             PrivacyDebugger.e(TAG, "getSettings - failed to get settings for package: " 
                     + packageName, e);
+
+            // Start: default-deny: we prevent leaking data by passing a default deny settings object
+            PrivacyDebugger.w(TAG, "getSettings - we now passing default deny object!");
+            privacySettings = PrivacySettings.getDefaultDenyObject();
+            if (cursor != null)
+                cursor.close();
+            // End Default-deny additions
+
         } finally {
             if (cursor != null)
                 cursor.close();
