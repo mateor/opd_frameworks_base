@@ -104,7 +104,7 @@ public final class PrivacySettingsManager {
             return service.getSettings(packageName);
             if (settings == null) {
                 // returning null for now as we decide default deny. at min. separate commit
-                PrivacyDebugger.e(TAG, "getSettings - PrivacySettingsManagerService is null);
+                PrivacyDebugger.e(TAG, "getSettings - PrivacySettingsManagerService is null");
                 return null
             } else {
                 return settings;
@@ -371,7 +371,7 @@ public final class PrivacySettingsManager {
                 serviceClass.equals("android.privacy.PrivacySettingsManagerService")) {
             return true;
         } else {
-            PrivacyDebugger.e(TAG, "PrivacySettingsManager:isServiceValid:
+            PrivacyDebugger.e(TAG, "PrivacySettingsManager:isServiceValid:"
                 + "PrivacySettingsManagerService is of an incorrect class (" 
                 + service.getClass().getCanonicalName() +")");
             (new Throwable()).printStackTrace();
@@ -432,7 +432,7 @@ public final class PrivacySettingsManager {
                     transientPrivacySettingsManager = null;
                 } else {
                     //Context has gone dead (been cleaned up). Make a non-static connection.
-                    PrivacyDebugger.d(TAG, "PrivacySettingsmanager:connectService: 
+                    PrivacyDebugger.d(TAG, "PrivacySettingsmanager:connectService: "
                         "switched from static to non-static instance of the privacy service");
                     this.service = IPrivacySettingsManager.Stub.asInterface
                         (ServiceManager.getService("privacy"));
