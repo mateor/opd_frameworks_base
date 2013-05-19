@@ -931,6 +931,76 @@ public final class PrivacySettings extends PrivacySettingsStub implements Parcel
     }
 
     /**
+     * Privacy Cache methods
+     * @author: CollegeDev
+     */
+
+    /**
+     * Creates new settings object based on the settings of the old one
+     * and marks it as an new entry for the database.
+     * @param settings Settings of the application
+     * @return Settings which are marked as new one for the database
+     */
+    public static PrivacySettings markAsNewEntry(PrivacySettings settings) {
+        return new PrivacySettings(settings);
+    }
+
+    /**
+     * Used to create new Settings from an existing one (CopyConstructor)
+     * -> the object is marked as new entry for the database
+     * @param settings PrivacySettings of the application
+     */
+    PrivacySettings(PrivacySettings settings) {
+        this._id = null;
+        this.packageName = settings.packageName;
+        this.uid = settings.uid;
+        this.deviceIdSetting = settings.deviceIdSetting;
+        this.deviceId = settings.deviceId;
+        this.line1NumberSetting = settings.line1NumberSetting;
+        this.line1Number = settings.line1Number;
+        this.locationGpsSetting = settings.locationGpsSetting;
+        this.locationGpsLat = settings.locationGpsLat;
+        this.locationGpsLon = settings.locationGpsLon;
+        this.locationNetworkSetting = settings.locationNetworkSetting;
+        this.locationNetworkLat = settings.locationNetworkLat;
+        this.locationNetworkLon = settings.locationNetworkLon;
+        this.networkInfoSetting = settings.networkInfoSetting;
+        this.simInfoSetting = settings.simInfoSetting;
+        this.simSerialNumberSetting = settings.simSerialNumberSetting;
+        this.simSerialNumber = settings.simSerialNumber;
+        this.subscriberIdSetting = settings.subscriberIdSetting;
+        this.subscriberId = settings.subscriberId;
+        this.accountsSetting = settings.accountsSetting;
+        this.accountsAuthTokensSetting = settings.accountsAuthTokensSetting;
+        this.outgoingCallsSetting = settings.outgoingCallsSetting;
+        this.incomingCallsSetting = settings.incomingCallsSetting;
+        this.contactsSetting = settings.contactsSetting;
+        this.calendarSetting = settings.calendarSetting;
+        this.mmsSetting = settings.mmsSetting;
+        this.smsSetting = settings.smsSetting;
+        this.callLogSetting = settings.callLogSetting;
+        this.bookmarksSetting = settings.bookmarksSetting;
+        this.systemLogsSetting = settings.systemLogsSetting;
+        this.notificationSetting = settings.notificationSetting;
+        this.intentBootCompletedSetting = settings.intentBootCompletedSetting;
+        this.cameraSetting = settings.cameraSetting;
+        this.recordAudioSetting = settings.recordAudioSetting;
+        this.smsSendSetting = settings.smsSendSetting;
+        this.phoneCallSetting = settings.phoneCallSetting;
+        this.ipTableProtectSetting = settings.ipTableProtectSetting;
+        this.iccAccessSetting = settings.iccAccessSetting;
+        this.addOnManagementSetting = settings.addOnManagementSetting;
+        this.androidIdSetting = settings.androidIdSetting;
+        this.androidID = settings.androidID;
+        this.wifiInfoSetting = settings.wifiInfoSetting;
+        this.switchConnectivitySetting = settings.switchConnectivitySetting;
+        this.sendMmsSetting = settings.sendMmsSetting;
+        this.forceOnlineState = settings.forceOnlineState;
+        this.switchWifiStateSetting = settings.switchWifiStateSetting;
+        this.allowedContacts = settings.allowedContacts;
+    }
+
+    /**
      * Parcelable implementation
      */
 
