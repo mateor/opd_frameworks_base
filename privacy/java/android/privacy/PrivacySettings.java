@@ -110,6 +110,41 @@ public final class PrivacySettings extends PrivacySettingsStub implements Parcel
     public static final String DATA_SEND_MMS = "sendMms";
     public static final String DATA_SWITCH_WIFI_STATE = "switchWifiState";
 
+    /**
+     * One of three possible option which declare how PDroid handles if
+     * we are not able to get current PrivacySettings.
+     * Empty means that if we can't get settings for the application for several reason,
+     * we will return a PrivacySettings object where all Settings are empty.
+     */
+    public static final int DEFAULT_DENY_EMPTY = -1;
+
+    /**
+     * One of three possible option which declare how PDroid handles if
+     * we are not able to get current PrivacySettings.
+     * Real means that if we can't get settings for the application for several reason,
+     * we will return a PrivacySettings object where all Settings are real.
+     */
+    public static final int DEFAULT_DENY_REAL = -2;
+
+    /**
+     * One of three possible option which declare how PDroid handles if
+     * we are not able to get current PrivacySettings.
+     * Random means that if we can't get settings for the application for several reason,
+     * we will return a PrivacySettings object where all Settings are random.
+     */
+    public static final int DEFAULT_DENY_RANDOM = -3;
+
+    /**
+     * Represents the current default deny mode. Just change it to your demanded mode if you like.
+     */
+    public static final int CURRENT_DEFAULT_DENY_MODE = DEFAULT_DENY_EMPTY;
+
+    /**
+     * The package name of the default deny object. With the package name you're able to check if it is
+     * a default deny object or a real settings object.
+     */
+    public static final String DEFAULT_DENY_OBJECT_PACKAGE_NAME = "default.deny.object";
+
     // Database entry ID
     private final Integer _id;
 
@@ -1068,5 +1103,37 @@ public final class PrivacySettings extends PrivacySettingsStub implements Parcel
         return 0;
     }
 
+    /*
+     *Default Deny Methods
+     * @author: CollegeDev
+     */
+
+
+    /**
+     * Use this method to get default deny object if something went wrong while getting the settings.
+     * 
+     * @return the default deny object (random, real, empty).
+     */
+    public static PrivacySettings getDefaultDenyObject() {
+        switch(CURRENT_DEFAULT_DENY_MODE) {
+            case DEFAULT_DENY_EMPTY:
+                return new PrivacySettings(-1, DEFAULT_DENY_OBJECT_PACKAGE_NAME, -1, true);
+            case DEFAULT_DENY_REAL:
+                return new PrivacySettings(-1, DEFAULT_DENY_OBJECT_PACKAGE_NAME, -1);
+            case DEFAULT_DENY_RANDOM:
+                return new PrivacySettings(-1, DEFAULT_DENY_OBJECT_PACKAGE_NAME, -1, false);
+            default:
+                //that normally does not happen, but we have to write it down!
+                return new PrivacySettings(-1, DEFAULT_DENY_OBJECT_PACKAGE_NAME, -1, true);
+        }
+    }
+    
+    /**
+     * indicates if the current settings object is a default deny object or not
+     * @return true if it is a default deny object, false otherwise
+     */
+    public boolean isDefaultDenyObject() {
+        return packageName.equals(DEFAULT_DENY_OBJECT_PACKAGE_NAME) ? true : false;
+    }
 
 }
