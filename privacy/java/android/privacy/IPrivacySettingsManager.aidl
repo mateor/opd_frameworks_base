@@ -23,6 +23,7 @@ interface IPrivacySettingsManager
     void notification(String packageName, byte accessMode, String dataType, String output);
     void registerObservers();
     void addObserver(String packageName);
+    int getLastCallerId(long uniqueId);
     boolean purgeSettings();
     boolean setEnabled(boolean enable);
     boolean setNotificationsEnabled(boolean enable);

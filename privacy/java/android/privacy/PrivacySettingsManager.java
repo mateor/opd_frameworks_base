@@ -285,6 +285,20 @@ public final class PrivacySettingsManager {
         }
     }
 
+    public int getLastCallerId(long uniqueId) {
+    this.connectService();
+        try {
+            if(isServiceAvailable()){
+                return service.getLastCallerId(uniqueId);
+            } else {
+                PrivacyDebugger.e(TAG, "getLastCallerId - PrivacySettingsManagerService is null");
+            }
+        } catch (RemoteException e) {
+            PrivacyDebugger.e(TAG, "RemoteException in getLastCallerId", e);
+        }
+    return new Random().nextInt();
+    }
+
     public void setDebugFlagInt(String flagName, int value)
             throws PrivacyServiceDisconnectedException, PrivacyServiceInvalidException, 
             PrivacyServiceException {

@@ -249,8 +249,13 @@ public final class PrivacySettingsManagerService extends IPrivacySettingsManager
             return false;
         }
     }
-    
-    
+
+    /**
+     * TODO: add description
+     */
+    public int getLastCallerId(long uniqueId) throws SecurityException {
+        return handleExecuteRequest(uniqueId);
+
     public static final String DEBUG_FLAG_SEND_NOTIFICATIONS = "sendNotifications";
     public static final String DEBUG_FLAG_USE_CACHE = "useCache";
     public static final String DEBUG_FLAG_CACHE_SIZE = "cacheSize";
