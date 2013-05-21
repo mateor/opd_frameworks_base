@@ -48,6 +48,9 @@ public final class PrivacySettingsManager {
 
     private static final String TAG = "PrivacySettingsManager";
     public static final String ACTION_PRIVACY_NOTIFICATION 
+    public static final String ACTION_FAIL_SAFE_MODE_TRIGGERED = "com.privacy.pdroid.FAIL_SAFE_MODE_TRIGGERED";
+    public static final String ACTION_FAIL_SAFE_BACKUP_FAILED = "com.privacy.pdroid.FAIL_SAFE_BACKUP_FAILED";
+    public static final String ACTION_FAIL_SAFE_BACKUP_COMPLETE = "com.privacy.pdroid.FAIL_SAFE_BACKUP_COMPLETE";
             = "com.privacy.pdroid.PRIVACY_NOTIFICATION";
     public static final String ACTION_PRIVACY_NOTIFICATION_ADDON 
             = "com.privacy.pdroid.PRIVACY_NOTIFICATION_ADDON";
@@ -277,11 +280,43 @@ public final class PrivacySettingsManager {
         }
     }
 
+    public boolean isFailSafeActive () {
+       boolean output = false;
+       this.connectService();
+       try {
+            if (isServiceAvailable()){
+               output = service.isFailSafeActive();
+            } else {
+               PrivacyDebugger.e(TAG, "isFaileSafeActive () - PrivacySettingsManagerService is null");
+            }
+       } catch (RemoteException e) {
+           PrivacyDebugger.e(TAG, "RemoteException in isFaileSafeActive ()", e);
+       }
+       return output;
+    }
+
+    /**
+     * should get a call if you want to disable failSafeMode
+     * TODO: rename it!
+     */
+    public void setFailSafeMode(boolean state) {
+        this.connectService();
+        try {
+           if (isServiceAvailable()){
+               PrivacyDebugger.i(TAG, "set now fail safe mode to:" + state);
+               service.setFailSafeMode(state);
+           } else {
+              PrivacyDebugger.e(TAG, "ackFailSafeInformed () - PrivacySettingsManagerService is null");
+           }
+       } catch (RemoteException e) {
+           PrivacyDebugger.e(TAG, "RemoteException in ackFailSafeInformed ()", e);
+       }
+    }
+
     public void setBootCompleted()
             throws PrivacyServiceDisconnectedException, PrivacyServiceInvalidException, 
             PrivacyServiceException {
         this.connectService();
-
         try {
             service.setBootCompleted();
         } catch (RemoteException e) {
