@@ -370,7 +370,7 @@ public final class PrivacySettingsManager {
      * Checks that the 
      * @return true if service class name matches expectations, otherwise false
      */
-    public boolean isServiceValid() {
+    private boolean isServiceValid() {
         if (!isServiceAvailable()) return false;
 
         String serviceClass = this.service.getClass().getCanonicalName();
