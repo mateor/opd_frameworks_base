@@ -311,4 +311,9 @@ public final class PrivacySettingsManagerService extends IPrivacySettingsManager
         debugFlags.put(DEBUG_FLAG_USE_CACHE, DEBUG_FLAG_TYPE_BOOLEAN);
         return debugFlags;
     }
+
+    public void toggleDebugMode (boolean state) {
+        PrivacyDebugger.setDebuggerState(state, context);
+    }
+
 }

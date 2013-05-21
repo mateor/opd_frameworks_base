@@ -359,6 +359,19 @@ public final class PrivacySettingsManager {
         }
     }
 
+    public void toggleDebugMode (boolean state) {
+    this.connectSerivce();
+        try {
+            if (isServiceAvailable()){
+               service.toggleDebugMode(state);
+            } else {
+               PrivacyDebugger.e(TAG, "toggleDebugMode - PrivacySettingsManagerService is null");
+            }
+       } catch (RemoteException e) {
+           PrivacyDebugger.e(TAG, "RemoteException in toggleDegubMode", e);
+       }
+    }
+
     /**
      * Checks that the 
      * @return true if service class name matches expectations, otherwise false
