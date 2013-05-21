@@ -53,6 +53,7 @@ public final class PrivacySettingsManager {
             = "com.privacy.pdroid.PRIVACY_NOTIFICATION_ADDON";
     private static final String SERVICE_CLASS 
             = "android.privacy.IPrivacySettingsManager.Stub.Proxy";
+    private static final int MAXIMUM_RECONNECT_COUNT = 5;
 
     IPrivacySettingsManager service;
     private WeakReference<Context> contextReference = null;
@@ -101,18 +102,20 @@ public final class PrivacySettingsManager {
             PrivacyServiceException {
         this.connectService();
         try {
-            return service.getSettings(packageName);
-            if (settings == null) {
-                // returning null for now as we decide default deny. at min. separate commit
-                PrivacyDebugger.e(TAG, "getSettings - PrivacySettingsManagerService is null");
-                return null
+            PrivacyDebugger.d(TAG, "getSettings() - getting settings for package: " + packageName);
+            if(isServiceAvailable()) {
+                return service.getSettings(packageName);
             } else {
-                return settings;
+                // returning null for now as we decide default deny. at min. separate commit
+                PrivacyDebugger.e(TAG, "getSettings - PrivacySettingsManagerService is null);
+                return null;
+            }
         } catch (RemoteException e) {
             PrivacyDebugger.e(TAG, "PrivacySettingsManager:getSettings: "
-                + "Exception occurred in the remote privacy service", e);
+                    + "Exception occurred in the remote privacy service for package: "
+                    + packageName, e);
             throw new PrivacyServiceException
-                ("Exception occurred in the remote privacy service", e);
+                    ("Exception occurred in the remote privacy service", e);
         }
     }
 
@@ -122,10 +125,13 @@ public final class PrivacySettingsManager {
             PrivacyServiceException {
         this.connectService();
         try {
+            PrivacyDebugger.d(TAG, "saveSettings() - saving settings for package: " + settings.getPackageName());
             return service.saveSettings(settings);
+            }
         } catch (RemoteException e) {
             PrivacyDebugger.e(TAG, "PrivacySettingsManager:saveSettings: "
-                + "Exception occurred in the remote privacy service", e);
+                + "Exception occurred in the remote privacy service for package",
+                + settings.getPackageName(), e);
             throw new PrivacyServiceException("Exception occurred in the "
                     + "remote privacy service", e);
         }
@@ -137,6 +143,7 @@ public final class PrivacySettingsManager {
             PrivacyServiceException {
         this.connectService();
         try {
+            PrivacyDebugger.d(TAG, "deleteSettings() - deleting settings for package: " + packageName);
             return service.deleteSettings(packageName);
         } catch (RemoteException e) {
             PrivacyDebugger.e(TAG, "PrivacySettingsManager:deleteSettings: "
@@ -413,38 +420,24 @@ public final class PrivacySettingsManager {
 
     private void connectService() throws PrivacyServiceDisconnectedException, 
             PrivacyServiceInvalidException {
+        int count = 0;
         if (!isServiceAvailable() || !isServiceValid()) {
-            // It's hard to say whether it is worth accomodating the 'static service' case or not: 
-            // it shouldn't come up because the static service should be persistent
-            if (contextReference != null) {
-                //Was initialised with a context: do we still have it?
-                Context context = contextReference.get();
-                if (context != null) {
-                    // Still have it: reconnect: this is horrible, but because the getSystemService
-                    // for the Privacy service returns a PrivacySettingsManager, there isn't really 
-                    // a way around it. (Apart from having something like 
-                    // privacySettingsManager.getPrivacySettingsManager() and have the object 
-                    // return either a whole new PrivacySettings if necessary 
-                    // or itself if it is still valid...
-                    PrivacySettingsManager transientPrivacySettingsManager = 
-                            (PrivacySettingsManager) context.getSystemService("privacy");
-                    this.service = transientPrivacySettingsManager.service;
-                    transientPrivacySettingsManager = null;
-                } else {
-                    //Context has gone dead (been cleaned up). Make a non-static connection.
-                    PrivacyDebugger.d(TAG, "PrivacySettingsmanager:connectService: "
-                        "switched from static to non-static instance of the privacy service");
-                    this.service = IPrivacySettingsManager.Stub.asInterface
-                        (ServiceManager.getService("privacy"));
-                }
-            } else {
-                this.service = IPrivacySettingsManager.Stub.asInterface(ServiceManager.getService("privacy"));
+            while(!isServiceAvailable() && count < MAXIMUM_RECONNECT_COUNT) {
+               reinitalizeService();
+               count++;
             }
-
             if (this.service == null) {
                 throw new PrivacyServiceDisconnectedException("Reconnection failed");
             }
         }
+    }
+
+    /**
+     * reinitializes our service if it is null for some reason!
+     */
+    private synchronized void reinitalizeService() {
+        this.service = IPrivacySettingsManager.Stub.asInterface(ServiceManager.getService("privacy"));
+        PrivacyDebugger.i(TAG, "service reinitalized now!");
     }
 
     /**
