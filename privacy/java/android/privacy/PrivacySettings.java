@@ -71,6 +71,12 @@ public final class PrivacySettings extends PrivacySettingsStub implements Parcel
     public static final byte SETTING_NOTIFY_OFF = 0;
     public static final byte SETTING_NOTIFY_ON = 1;
 
+    /**
+     * The package name of the fail save mode object. With the package name you're able to check if it is
+     * a fail safe settings object or a real settings object.
+     */
+    public static final String FAIL_SAFE_MODE_OBJECT_PACKAGE_NAME = "fail.safe.object";
+
     /** used to create random android ID*/
     public static final String[] ID_PATTERN = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
             "a", "b", "c", "d", "e", "f"};
@@ -998,6 +1004,18 @@ public final class PrivacySettings extends PrivacySettingsStub implements Parcel
         this.forceOnlineState = settings.forceOnlineState;
         this.switchWifiStateSetting = settings.switchWifiStateSetting;
         this.allowedContacts = settings.allowedContacts;
+    }
+
+    public static PrivacySettings getFailSaveObject() {
+        return new PrivacySettings(-1, FAIL_SAFE_MODE_OBJECT_PACKAGE_NAME, -1, true);
+    }
+
+    /**
+     * indicates if the current settings object is a fail safe object
+     * @return true if it is a fail save object, false otherwise
+     */
+    public boolean isFailSafeObject() {
+        return packageName.equals(FAIL_SAFE_MODE_OBJECT_PACKAGE_NAME) ? true : false;
     }
 
     /**

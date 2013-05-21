@@ -196,6 +196,21 @@ public final class PrivacySettingsManagerService extends IPrivacySettingsManager
     }
 
     /**
+     * @author: CollegeDev
+     * @return true if the failsafe mode is active, false otherwise. Can be
+     * only called by system process!
+     */
+    public boolean isFailSafeActive () {
+        context.enforceCallingPermission(GET_FAIL_SAFE_STATE, "Requires GET_FAIL_SAFE_STATE");
+        return persistenceAdapter.isFailSafeActive();
+    }
+
+    public void setFailSafeMode(boolean state) {
+        context.enforceCallingPermission(SET_FAIL_SAFE_MODE, "Requires SET_FAIL_SAFE_MODE");
+        persistenceAdapter.setFailSafeMode(state);
+    }
+
+    /**
      * Check the caller of the service has privileges to write to it
      * Throw an exception if not. 
      */
