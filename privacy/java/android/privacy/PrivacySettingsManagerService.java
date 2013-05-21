@@ -37,6 +37,10 @@ public final class PrivacySettingsManagerService extends IPrivacySettingsManager
     private static final String WRITE_PRIVACY_SETTINGS = "android.privacy.WRITE_PRIVACY_SETTINGS";
     private static final String READ_PRIVACY_SETTINGS = "android.privacy.READ_PRIVACY_SETTINGS";
 
+    private static final String RECEIVE_FAIL_SAFE_TRIGGERED = "android.privacy.RECEIVE_FAIL_SAFE_TRIGGERED";
+    private static final String SET_FAIL_SAFE_MODE = "android.privacy.SET_FAIL_SAFE_MODE";
+    private static final String GET_FAIL_SAFE_STATE = "android.privacy.GET_FAIL_SAFE_STATE";
+
     private static boolean sendNotifications = true; 
     private PrivacyPersistenceAdapter persistenceAdapter;
 
@@ -193,6 +197,21 @@ public final class PrivacySettingsManagerService extends IPrivacySettingsManager
         } else {
             return false;
         }
+    }
+
+    /**
+     * @author: CollegeDev
+     * @return true if the failsafe mode is active, false otherwise. Can be
+     * only called by system process!
+     */
+    public boolean isFailSafeActive () {
+        context.enforceCallingPermission(GET_FAIL_SAFE_STATE, "Requires GET_FAIL_SAFE_STATE");
+        return persistenceAdapter.isFailSafeActive();
+    }
+
+    public void setFailSafeMode(boolean state) {
+        context.enforceCallingPermission(SET_FAIL_SAFE_MODE, "Requires SET_FAIL_SAFE_MODE");
+        persistenceAdapter.setFailSafeMode(state);
     }
 
     /**
