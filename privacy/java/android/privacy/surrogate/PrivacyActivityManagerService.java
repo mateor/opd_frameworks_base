@@ -17,7 +17,6 @@ import android.content.Intent;
 import android.privacy.PrivacyServiceException;
 import android.privacy.PrivacySettings;
 import android.privacy.PrivacySettingsManager;
-import android.privacy.PrivacySettingsManagerService;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.os.ServiceManager;
