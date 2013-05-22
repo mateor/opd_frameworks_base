@@ -37,6 +37,11 @@ public final class PrivacySettingsManagerService extends IPrivacySettingsManager
     private static final String WRITE_PRIVACY_SETTINGS = "android.privacy.WRITE_PRIVACY_SETTINGS";
     private static final String READ_PRIVACY_SETTINGS = "android.privacy.READ_PRIVACY_SETTINGS";
 
+    /**
+     * Allows an application to receive privacy notification.
+     */
+    public static final String GET_PRIVACY_NOTIFICATION = "android.privacy.GET_PRIVACY_NOTIFICATION";
+
     private static boolean sendNotifications = true; 
     private PrivacyPersistenceAdapter persistenceAdapter;
 
@@ -130,7 +135,7 @@ public final class PrivacySettingsManagerService extends IPrivacySettingsManager
             intent.putExtra("accessMode", accessMode);
             intent.putExtra("dataType", dataType);
             intent.putExtra("output", output);
-            context.sendBroadcast(intent);
+            context.sendBroadcast(intent, GET_PRIVACY_NOTIFICATION);
         }
     }
 
