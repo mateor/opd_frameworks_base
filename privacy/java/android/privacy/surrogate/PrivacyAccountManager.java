@@ -79,19 +79,27 @@ public final class PrivacyAccountManager extends AccountManager {
             if (pSet != null && pSet.getAccountsSetting() != PrivacySettings.REAL) {
                 output_label = "[empty accounts list]";
                 output = new Account[0];
-                pSetMan.notification(packageName, PrivacySettings.EMPTY, 
-                        PrivacySettings.DATA_ACCOUNTS_LIST, null);
+                if (pSet.isDefaultDenyObject())
+                    pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet);
+                else
+                    pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet);
             } else {
                 output_label = "[real value]";
                 output = super.getAccounts(); 
-                pSetMan.notification(packageName, PrivacySettings.REAL, 
-                        PrivacySettings.DATA_ACCOUNTS_LIST, null);
+                if (pSet != null && pSet.isDefaultDenyObject())
+                    pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet);
+                else
+                    pSetMan.notification(packageName, uid, PrivacySettings.REAL,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet);
             }
         } catch (PrivacyServiceException e) {
             Log.e(TAG, "PrivacyAccountManager:getAccounts: PrivacyServiceException occurred");
             output_label = "[empty accounts list]";
             output = new Account[0];
-            pSetMan.notification(packageName, PrivacySettings.ERROR, 
+            pSetMan.notification(packageName, PrivacySettings.ERROR,
                     PrivacySettings.DATA_ACCOUNTS_LIST, null);
         }
         return output;
@@ -113,13 +121,21 @@ public final class PrivacyAccountManager extends AccountManager {
             if (pSet != null && pSet.getAccountsSetting() != PrivacySettings.REAL) {
                 output_label = "[empty accounts list]";
                 output = new Account[0];
-                pSetMan.notification(packageName, PrivacySettings.EMPTY, 
-                        PrivacySettings.DATA_ACCOUNTS_LIST, null);
+                if(pSet.isDefaultDenyObject())
+                    pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet);
+                else
+                    pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet);
             } else {
                 output_label = "[real value]";
                 output = super.getAccountsByType(type);
-                pSetMan.notification(packageName, PrivacySettings.REAL, 
-                        PrivacySettings.DATA_ACCOUNTS_LIST, null);
+                if(pSet != null && pSet.isDefaultDenyObject())
+                    pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet);
+                else
+                    pSetMan.notification(packageName, uid, PrivacySettings.REAL,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet);
             }
         } catch (PrivacyServiceException e) {
             Log.e(TAG, "PrivacyAccountManager:getAccountsByType: PrivacyServiceException occurred");
@@ -144,23 +160,31 @@ public final class PrivacyAccountManager extends AccountManager {
             pSetMan = PrivacySettingsManager.getPrivacyService(context);
         }
         try {
-            PrivacySettings pSet = pSetMan.getSettings(packageName);        
+            PrivacySettings pSet = pSetMan.getSettings(packageName);
             if (pSet != null && pSet.getAccountsSetting() != PrivacySettings.REAL) {
                 output_label = "[false]";
                 output = new PrivacyAccountManagerFuture<Boolean>(false);
-                pSetMan.notification(packageName, PrivacySettings.EMPTY, 
-                        PrivacySettings.DATA_ACCOUNTS_LIST, null);      
+                if(pSet.isDefaultDenyObject())
+                    pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet);
+                else
+                    pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet);
             } else {
                 output_label = "[real value]";
                 output = super.hasFeatures(account, features, callback, handler);
-                pSetMan.notification(packageName, PrivacySettings.REAL, 
-                        PrivacySettings.DATA_ACCOUNTS_LIST, null);            
+                if(pSet != null && pSet.isDefaultDenyObject())
+                    pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet);
+                else
+                    pSetMan.notification(packageName, uid, PrivacySettings.REAL,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet);
             }
         } catch (PrivacyServiceException e) {
             Log.e(TAG, "PrivacyAccountManager:hasFeatures: PrivacyServiceException occurred");
             output_label = "[false]";
             output = new PrivacyAccountManagerFuture<Boolean>(false);
-            pSetMan.notification(packageName, PrivacySettings.ERROR, 
+            pSetMan.notification(packageName, PrivacySettings.ERROR,
                     PrivacySettings.DATA_ACCOUNTS_LIST, null);
         }
 
@@ -168,7 +192,7 @@ public final class PrivacyAccountManager extends AccountManager {
     }
 
     @Override
-    public AccountManagerFuture<Account[]> getAccountsByTypeAndFeatures(String type, 
+    public AccountManagerFuture<Account[]> getAccountsByTypeAndFeatures(String type,
             String[] features, AccountManagerCallback<Account[]> callback, Handler handler) {
 
         String packageName = context.getPackageName();
@@ -179,18 +203,26 @@ public final class PrivacyAccountManager extends AccountManager {
             pSetMan = PrivacySettingsManager.getPrivacyService(context);
         }
         try {
-            PrivacySettings pSet = pSetMan.getSettings(packageName);       
+            PrivacySettings pSet = pSetMan.getSettings(packageName);
 
             if (pSet != null && pSet.getAccountsSetting() != PrivacySettings.REAL) {
                 output_label = "[false]";
                 output = new PrivacyAccountManagerFuture<Account[]>(new Account[0]);
-                pSetMan.notification(packageName, PrivacySettings.EMPTY, 
-                        PrivacySettings.DATA_ACCOUNTS_LIST, null);      
+                if(pSet.isDefaultDenyObject())
+                    pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet);
+                else
+                    pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet)
             } else {
                 output_label = "[real value]";
                 output = super.getAccountsByTypeAndFeatures(type, features, callback, handler);
-                pSetMan.notification(packageName, PrivacySettings.REAL, 
-                        PrivacySettings.DATA_ACCOUNTS_LIST, null);            
+                if(pSet != null && pSet.isDefaultDenyObject())
+                    pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet);
+                else
+                    pSetMan.notification(packageName, uid, PrivacySettings.REAL,
+                            PrivacySettings.DATA_ACCOUNTS_LIST, null, pSet);
             }
         } catch (PrivacyServiceException e) {
             Log.e(TAG, "PrivacyAccountManager:getAccountsByTypeAndFeatures: "
@@ -220,20 +252,28 @@ public final class PrivacyAccountManager extends AccountManager {
             pSetMan = PrivacySettingsManager.getPrivacyService(context);
         }
         try {
-            PrivacySettings pSet = pSetMan.getSettings(packageName);    
+            PrivacySettings pSet = pSetMan.getSettings(packageName);
 
             if (pSet != null && pSet.getAccountsAuthTokensSetting() != PrivacySettings.REAL) {
-                pSetMan.notification(packageName, PrivacySettings.EMPTY, 
-                        PrivacySettings.DATA_AUTH_TOKENS, null);      
+                if(pSet.isDefaultDenyObject())
+                    pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                           PrivacySettings.DATA_AUTH_TOKENS, null, pSet);
+                else
+                    pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                           PrivacySettings.DATA_AUTH_TOKENS, null, pSet);
             } else {
                 output = super.blockingGetAuthToken(account, authTokenType, notifyAuthFailure);
-                pSetMan.notification(packageName, PrivacySettings.REAL, 
-                        PrivacySettings.DATA_AUTH_TOKENS, null);      
+                if(pSet != null && pSet.isDefaultDenyObject())
+                    pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_AUTH_TOKENS, null, pSet);
+                else
+                    pSetMan.notification(packageName, uid, PrivacySettings.REAL,
+                            PrivacySettings.DATA_AUTH_TOKENS, null, pSet);
             }
         } catch (PrivacyServiceException e) {
             Log.e(TAG, "PrivacyAccountManager:blockingGetAuthToken: "
                     + "PrivacyServiceException occurred");
-            pSetMan.notification(packageName, PrivacySettings.ERROR, 
+            pSetMan.notification(packageName, PrivacySettings.ERROR,
                     PrivacySettings.DATA_AUTH_TOKENS, null);
         }
 
@@ -252,19 +292,23 @@ public final class PrivacyAccountManager extends AccountManager {
             pSetMan = PrivacySettingsManager.getPrivacyService(context);
         }
         try {
-            PrivacySettings pSet = pSetMan.getSettings(packageName);   
+            PrivacySettings pSet = pSetMan.getSettings(packageName);
 
             if (pSet != null && pSet.getAccountsAuthTokensSetting() != PrivacySettings.REAL) {
                 output_label = "[empty]";
                 output = new PrivacyAccountManagerFuture<Bundle>(new Bundle());
-                pSetMan.notification(packageName, PrivacySettings.EMPTY, 
-                        PrivacySettings.DATA_AUTH_TOKENS, null);      
+                if(pSet.isDefaultDenyObject())
+                    pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_AUTH_TOKENS, null, pSet);
+                else
+                    pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                            PrivacySettings.DATA_AUTH_TOKENS, null, pSet);
             } else {
                 output_label = "[real value]";
-                output = super.getAuthToken(account, authTokenType, notifyAuthFailure, 
+                output = super.getAuthToken(account, authTokenType, notifyAuthFailure,
                         callback, handler);
-                pSetMan.notification(packageName, PrivacySettings.REAL, 
-                        PrivacySettings.DATA_AUTH_TOKENS, null);      
+                pSetMan.notification(packageName, PrivacySettings.REAL,
+                        PrivacySettings.DATA_AUTH_TOKENS, null);
             }
         } catch (PrivacyServiceException e) {
             Log.e(TAG, "PrivacyAccountManager:getAuthToken: PrivacyServiceException occurred");
@@ -290,19 +334,27 @@ public final class PrivacyAccountManager extends AccountManager {
             pSetMan = PrivacySettingsManager.getPrivacyService(context);
         }
         try {
-            PrivacySettings pSet = pSetMan.getSettings(packageName);   
+            PrivacySettings pSet = pSetMan.getSettings(packageName);
 
             if (pSet != null && pSet.getAccountsAuthTokensSetting() != PrivacySettings.REAL) {
                 output_label = "[empty]";
                 output = new PrivacyAccountManagerFuture<Bundle>(new Bundle());
-                pSetMan.notification(packageName, PrivacySettings.EMPTY, 
-                        PrivacySettings.DATA_AUTH_TOKENS, null);      
+                if(pSet.isDefaultDenyObject())
+                    pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_AUTH_TOKENS, null, pSet);
+                else
+                    pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                            PrivacySettings.DATA_AUTH_TOKENS, null, pSet);
             } else {
                 output_label = "[real value]";
-                output = super.getAuthToken(account, authTokenType, options, activity, 
+                output = super.getAuthToken(account, authTokenType, options, activity,
                         callback, handler);
-                pSetMan.notification(packageName, PrivacySettings.REAL, 
-                        PrivacySettings.DATA_AUTH_TOKENS, null);      
+                if(pSet != null && pSet.isDefaultDenyObject())
+                    pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_AUTH_TOKENS, null, pSet);
+                else
+                    pSetMan.notification(packageName, uid, PrivacySettings.REAL,
+                            PrivacySettings.DATA_AUTH_TOKENS, null, pSet);
             }
         } catch (PrivacyServiceException e) {
             Log.e(TAG, "PrivacyAccountManager:getAuthToken: PrivacyServiceException occurred");
@@ -331,19 +383,27 @@ public final class PrivacyAccountManager extends AccountManager {
             pSetMan = PrivacySettingsManager.getPrivacyService(context);
         }
         try {
-            PrivacySettings pSet = pSetMan.getSettings(packageName);   
+            PrivacySettings pSet = pSetMan.getSettings(packageName);
 
             if (pSet != null && pSet.getAccountsAuthTokensSetting() != PrivacySettings.REAL) {
                 output_label = "[empty]";
                 output = new PrivacyAccountManagerFuture<Bundle>(new Bundle());
-                pSetMan.notification(packageName, PrivacySettings.EMPTY, 
-                        PrivacySettings.DATA_AUTH_TOKENS, null);      
+                if(pSet.isDefaultDenyObject())
+                    pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_AUTH_TOKENS, null, pSet);
+                else
+                    pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                            PrivacySettings.DATA_AUTH_TOKENS, null, pSet);
             } else {
                 output_label = "[real value]";
-                output = super.getAuthTokenByFeatures(accountType, authTokenType, features, 
+                output = super.getAuthTokenByFeatures(accountType, authTokenType, features,
                         activity, addAccountOptions, getAuthTokenOptions, callback, handler);
-                pSetMan.notification(packageName, PrivacySettings.REAL, 
-                        PrivacySettings.DATA_AUTH_TOKENS, null);      
+                if(pSet != null && pSet.isDefaultDenyObject())
+                    pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                            PrivacySettings.DATA_AUTH_TOKENS, null, pSet);
+                else
+                    pSetMan.notification(packageName, uid, PrivacySettings.REAL,
+                            PrivacySettings.DATA_AUTH_TOKENS, null, pSet);
             }
         } catch (PrivacyServiceException e) {
             output_label = "[empty]";
