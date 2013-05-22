@@ -97,15 +97,23 @@ public final class PrivacyActivityManagerService {
                     if (pSet != null && pSet.getOutgoingCallsSetting() != PrivacySettings.REAL) {
                         output = "";
                         intent.putExtra(Intent.EXTRA_PHONE_NUMBER, output);
-                        pSetMan.notification(packageName, PrivacySettings.EMPTY, 
-                                PrivacySettings.DATA_OUTGOING_CALL, null);
+                        if(pSet.isDefaultDenyObject())
+                            pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                    PrivacySettings.DATA_OUTGOING_CALL, null, pSet);
+                        else
+                            pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                    PrivacySettings.DATA_OUTGOING_CALL, null, pSet);
                     } else if (tmpOutHash == hashCode(intent)) {
                         // if this intent was stored before, get the real 
                         // value since it could have been modified
                         output = tmpOut.getStringExtra(Intent.EXTRA_PHONE_NUMBER);
                         intent.putExtra(Intent.EXTRA_PHONE_NUMBER, output);
-                        pSetMan.notification(packageName, PrivacySettings.REAL, 
-                                PrivacySettings.DATA_OUTGOING_CALL, null);
+                        if(pSet != null && pSet.isDefaultDenyObject())
+                            pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                    PrivacySettings.DATA_OUTGOING_CALL, null, pSet);
+                        else
+                            pSetMan.notification(packageName, uid, PrivacySettings.REAL,
+                                    PrivacySettings.DATA_OUTGOING_CALL, null, pSet);
                     }
                 } catch (Exception e) {
                     PrivacyDebugger.e(TAG, 
@@ -160,13 +168,21 @@ public final class PrivacyActivityManagerService {
                     if (pSet != null && pSet.getIncomingCallsSetting() != PrivacySettings.REAL) {
                         output = "";
                         intent.putExtra(TelephonyManager.EXTRA_INCOMING_NUMBER, output);
-                        pSetMan.notification(packageName, PrivacySettings.EMPTY, 
-                                PrivacySettings.DATA_INCOMING_CALL, null);
+                        if(pSet.isDefaultDenyObject())
+                            pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                    PrivacySettings.DATA_INCOMING_CALL, null, pSet);
+                        else
+                            pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                    PrivacySettings.DATA_INCOMING_CALL, null, pSet);
                     } else if (tmpInHash == hashCode(intent)) {
                         output = tmpIn.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
                         intent.putExtra(TelephonyManager.EXTRA_INCOMING_NUMBER, output);
-                        pSetMan.notification(packageName, PrivacySettings.REAL, 
-                                PrivacySettings.DATA_INCOMING_CALL, null);
+                        if(pSet != null && pSet.isDefaultDenyObject())
+                            pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                    PrivacySettings.DATA_INCOMING_CALL, null, pSet);
+                        else
+                            pSetMan.notification(packageName, uid, PrivacySettings.REAL,
+                                    PrivacySettings.DATA_INCOMING_CALL, null, pSet);
                     }
                 } catch (Exception e) {
                     PrivacyDebugger.e(TAG, 
@@ -233,8 +249,12 @@ public final class PrivacyActivityManagerService {
                         //        + "permission denied, replaced pdu; pdu number: "
                         //        + (o != null ? o.length : "null") + " "
                         //        + "1st pdu length:" + (b != null ? b.length : "null"));
-                        pSetMan.notification(packageName, uid, PrivacySettings.EMPTY, 
-                                PrivacySettings.DATA_SMS, null, pSet);
+                        if(pSet.isDefaultDenyObject())
+                            pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                    PrivacySettings.DATA_SMS, null, pSet);
+                        else
+                            pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                    PrivacySettings.DATA_SMS, null, pSet);
                     } else if (tmpSmsHash == hashCode(intent)) {
                         intent.putExtra("pdus", tmpSms.getSerializableExtra("pdus"));
 
@@ -244,8 +264,12 @@ public final class PrivacyActivityManagerService {
                         //        "permission granted, inserting saved pdus; pdu number: "
                         //        + (o != null ? o.length : "null") + " "
                         //        + "1st pdu length:" + (b != null ? b.length : "null"));
-                        pSetMan.notification(packageName, uid, PrivacySettings.REAL, 
-                                PrivacySettings.DATA_SMS, null, pSet);
+                        if(pSet != null && pSet.isDefaultDenyObject())
+                            pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                    PrivacySettings.DATA_SMS, null, pSet);
+                        else
+                            pSetMan.notification(packageName, uid, PrivacySettings.REAL,
+                                    PrivacySettings.DATA_SMS, null, pSet);
                     }
                 } catch (Exception e) {
                     PrivacyDebugger.e(TAG, 
@@ -317,8 +341,12 @@ public final class PrivacyActivityManagerService {
                         emptypdusObj[0] = (Object) new byte[] 
                                 {0,32,1,-127,-16,0,0,17,-112,1,48,34,34,-128,1,32};
                         intent.putExtra("pdus", emptypdusObj);
-                        pSetMan.notification(packageName, PrivacySettings.EMPTY, 
-                                PrivacySettings.DATA_MMS, null);
+                        if(pSet.isDefaultDenyObject())
+                            pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                    PrivacySettings.DATA_MMS, null, pSet);
+                        else
+                            pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                    PrivacySettings.DATA_MMS, null, pSet);
                     } else if (tmpMmsHash == hashCode(intent)) {
                         intent.putExtra("pdus", tmpMms.getSerializableExtra("pdus"));
 
@@ -328,8 +356,12 @@ public final class PrivacyActivityManagerService {
                         //      "permission granted, inserting saved pdus; pdu number: "
                         //      + (o != null ? o.length : "null") + " "
                         //      + "1st pdu length:" + (b != null ? b.length : "null"));
-                        pSetMan.notification(packageName, PrivacySettings.REAL, 
-                                PrivacySettings.DATA_MMS, null);
+                        if(pSet != null && pSet.isDefaultDenyObject())
+                            pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                    PrivacySettings.DATA_MMS, null, pSet);
+                        else
+                            pSetMan.notification(packageName, uid, PrivacySettings.REAL,
+                                PrivacySettings.DATA_MMS, null, pSet);
                     }
                 } catch (Exception e) {
                     PrivacyDebugger.e(TAG,
@@ -385,14 +417,22 @@ public final class PrivacyActivityManagerService {
                     //PrivacyDebugger.i(TAG,
                     //    "package: " + packageName + " blocked INTENT_BOOT_COMPLETE");
                     //intent.setPackage("com.android.privacy.pdroid.extension");
-                    pSetMan.notification(packageName, PrivacySettings.EMPTY, 
-                            PrivacySettings.DATA_INTENT_BOOT_COMPLETED, null);
+                    if(pSet.isDefaultDenyObject())
+                        pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                PrivacySettings.DATA_INTENT_BOOT_COMPLETED, null, null);
+                    else
+                        pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                PrivacySettings.DATA_INTENT_BOOT_COMPLETED, null, null);
                 } else {
                     intent.setAction(Intent.ACTION_BOOT_COMPLETED);
                     //PrivacyDebugger.i(TAG,
                     //    "package: " + packageName + " allowed INTENT_BOOT_COMPLETE");
-                    pSetMan.notification(packageName, PrivacySettings.REAL, 
-                            PrivacySettings.DATA_INTENT_BOOT_COMPLETED, null);
+                    if(pSet != null && pSet.isDefaultDenyObject())
+                        pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                PrivacySettings.DATA_INTENT_BOOT_COMPLETED, null, null);
+                    else
+                       pSetMan.notification(packageName, uid, PrivacySettings.REAL,
+                                PrivacySettings.DATA_INTENT_BOOT_COMPLETED, null, null);
                 }
             } catch (PrivacyServiceException e) {
                 PrivacyDebugger.e(TAG,
