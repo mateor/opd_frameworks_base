@@ -13,7 +13,6 @@
 package android.privacy.surrogate;
 
 import android.content.Context;
-import android.content.IContentProvider;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Binder;
