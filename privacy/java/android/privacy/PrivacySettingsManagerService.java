@@ -85,7 +85,8 @@ public final class PrivacySettingsManagerService extends IPrivacySettingsManager
         // Log.d(TAG, "getSettings - " + packageName);
         if (enabled || context.getPackageName().equals("com.privacy.pdroid")
                 || context.getPackageName().equals("com.privacy.pdroid.Addon")
-                || context.getPackageName().equals("com.android.privacy.pdroid.extension")) {
+                || context.getPackageName().equals("com.android.privacy.pdroid.extension"))
+                || context.getPackageName().equals("net.digitalfeed.pdroidalternative")) {
             // we have to add our addon package here, to get real settings
             return persistenceAdapter.getSettings(packageName);
         } else {
