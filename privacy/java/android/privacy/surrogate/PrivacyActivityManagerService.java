@@ -33,13 +33,6 @@ public final class PrivacyActivityManagerService {
 
     private static final String TAG = "PrivacyActivityManagerService";
 
-    private static final String SMS_RECEIVED_ACTION_INTENT = 
-            "android.provider.Telephony.SMS_RECEIVED";
-    private static final String WAP_PUSH_RECEIVED_INTENT = 
-            "android.provider.Telephony.WAP_PUSH_RECEIVED";
-    private static final String DATA_SMS_RECEIVED_INTENT = 
-            "android.intent.action.DATA_SMS_RECEIVED";
-
     private static PrivacySettingsManager pSetMan;
 
     private static Intent tmpIn;
@@ -197,7 +190,7 @@ public final class PrivacyActivityManagerService {
             //            PrivacyDebugger.d(TAG, "broadcasting intent " + action + " - " 
             //                + packageName + " (" + uid + ") output: " + output);
             //                incoming SMS
-        } else if (action.equals(SMS_RECEIVED_ACTION_INTENT)) {
+        } else if (action.equals(Sms.Intents.SMS_RECEIVED_ACTION_INTENT)) {
             try {
                 pSet = pSetMan.getSettings(packageName, uid);
                 output = "[real]";
@@ -285,8 +278,8 @@ public final class PrivacyActivityManagerService {
             //     "broadcasting intent " + action + " - " + packageName + " (" + uid 
             //     + ") output: " + output);
             // incoming MMS
-        } else if (action.equals(WAP_PUSH_RECEIVED_INTENT) ||
-                action.equals(DATA_SMS_RECEIVED_INTENT)) {
+        } else if (action.equals(Sms.Intents.WAP_PUSH_RECEIVED_INTENT) ||
+                action.equals(Sms.Intents.DATA_SMS_RECEIVED_INTENT)) {
             try {
                 pSet = pSetMan.getSettings(packageName, uid);
                 output = "[real]";
@@ -446,4 +439,77 @@ public final class PrivacyActivityManagerService {
         }
         return privacyHash;
     }
+
+    /**
+     * Contains info about SMS related Intents that are broadcast.
+     * 
+     * @author CollegeDev (Stefan T.)
+     * @sidenote: Please note that this class is only temporary copied -> normally this constants does not update, but from version to version 
+     * we have to take a look at it!
+     */
+    private  final class Sms {
+         private final class Intents {
+                /**
+                 * Broadcast Action: A new text based SMS message has been received
+                 * by the device. The intent will have the following extra
+                 * values:
+                 *
+                 *   pdus-An Object[] of byte[]s containing the PDUs
+                 *   that make up the message.
+                 *
+                 * The extra values can be extracted using
+                 * {@link #getMessagesFromIntent(Intent)}.
+                 *
+                 * If a BroadcastReceiver encounters an error while processing
+                 * this intent it should set the result code appropriately.
+                 */
+                private final static String SMS_RECEIVED_INTENT =
+                        "android.provider.Telephony.SMS_RECEIVED";
+
+                /**
+                 * Broadcast Action: A new data based SMS message has been received
+                 * by the device. The intent will have the following extra
+                 * values:
+                 *
+                 *   pdus-An Object[] of byte[]s containing the PDUs
+                 *   that make up the message.
+                 *
+                 * The extra values can be extracted using
+                 * {@link #getMessagesFromIntent(Intent)}
+                 *
+                 * If a BroadcastReceiver encounters an error while processing
+                 * this intent it should set the result code appropriately.
+                 */
+                private final static String DATA_SMS_RECEIVED_INTENT =
+                        "android.intent.action.DATA_SMS_RECEIVED";
+
+                /**
+                 * Broadcast Action: A new WAP PUSH message has been received by the
+                 * device. The intent will have the following extra
+                 * values:
+                 *
+                 *   * transactionId (Integer) - The WAP transaction ID
+                 *   * pduType (Integer)</em> - The WAP PDU type
+                 *   * header (byte[])</em> - The header of the message
+                 *   * data (byte[])</em> - The data payload of the message
+                 *   * contentTypeParameters (HashMap<String,String>)
+                 *   - Any parameters associated with the content type
+                 *   (decoded from the WSP Content-Type header)
+                 *
+                 * If a BroadcastReceiver encounters an error while processing
+                 * this intent it should set the result code appropriately.
+                 *
+                 * The contentTypeParameters extra value is map of content parameters keyed by
+                 * their names.
+                 *
+                 * If any unassigned well-known parameters are encountered, the key of the map will
+                 * be 'unassigned/0x...', where '...' is the hex value of the unassigned parameter.  If
+                 * a parameter has No-Value the value in the map will be null.
+                 */
+                private final static String WAP_PUSH_RECEIVED_INTENT =
+                        "android.provider.Telephony.WAP_PUSH_RECEIVED";
+
+            }
+    }
+
 }
