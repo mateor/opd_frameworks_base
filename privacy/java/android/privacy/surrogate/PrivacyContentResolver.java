@@ -62,12 +62,33 @@ public final class PrivacyContentResolver {
                     String packageName = context.getPackageName();
                     try {
                         PrivacySettings pSet = pSetMan.getSettings(packageName);
-                        if (pSet == null || pSet.getContactsSetting() == PrivacySettings.REAL) {
-                            pSetMan.notification(packageName, PrivacySettings.REAL, PrivacySettings.DATA_CONTACTS, null);
+                        if (pSet == null) {
+                            PrivacyDebugger.e(TAG, "pSet is NULL -> handle default deny mode!");
+                            switch(PrivacySettings.CURRENT_DEFAULT_DENY_MODE) {
+                                case PrivacySettings.DEFAULT_DENY_EMPTY:
+                                case PrivacySettings.DEFAULT_DENY_RANDOM:
+                                    output = new PrivacyCursor();
+                                    PrivacyDebugger.w(TAG,"default mode is empty or random. Set cursor to privacyCursor");
+                                   break;
+                                case PrivacySettings.DEFAULT_DENY_REAL:
+                                    //nothing here
+                                    PrivacyDebugger.w(TAG,"default deny mode is real -> return real cursor");
+                                    break;
+                            }
+                        pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                PrivacySettings.DATA_CONTACTS, null, pSet);
+                        } else if (pSet.getContactsSetting() == PrivacySettings.REAL) {
+                            pSetMan.notification(packageName, PrivacySettings.REAL,
+                                    PrivacySettings.DATA_CONTACTS, null);
                         } else if (pSet.getContactsSetting() == PrivacySettings.EMPTY) {
                             output_label = "[empty]";
                             output = new PrivacyCursor();
-                            pSetMan.notification(packageName, PrivacySettings.EMPTY, PrivacySettings.DATA_CONTACTS, null);
+                            if(pSet.isDefaultDenyObject())
+                                pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                    PrivacySettings.DATA_CONTACTS, null, pSet);
+                            else
+                                pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                        PrivacySettings.DATA_CONTACTS, null, pSet);
                         } else if (pSet.getContactsSetting() == PrivacySettings.CUSTOM && 
                                 uri.toString().contains(ContactsContract.Contacts.CONTENT_URI.toString())) {
 
@@ -86,7 +107,12 @@ public final class PrivacyContentResolver {
                             } else {
                                 output = new PrivacyCursor(output, pSet.getAllowedContacts());
                             }
-                            pSetMan.notification(packageName, PrivacySettings.CUSTOM, PrivacySettings.DATA_CONTACTS, null);
+                            if(pSet.isDefaultDenyObject())
+                                pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                        PrivacySettings.DATA_CONTACTS, null, pSet);
+                            else
+                                pSetMan.notification(packageName, uid, PrivacySettings.CUSTOM,
+                                        PrivacySettings.DATA_CONTACTS, null, pSet);
                         }
                     } catch (PrivacyServiceException e) {
                         output_label = "[empty]";
@@ -104,12 +130,24 @@ public final class PrivacyContentResolver {
                     String packageName = context.getPackageName();
                     try {
                         PrivacySettings pSet = pSetMan.getSettings(packageName);
-                        if (pSet == null || pSet.getCalendarSetting() == PrivacySettings.REAL) {
+                        if (pSet.getCalendarSetting() == PrivacySettings.REAL) {
                             pSetMan.notification(packageName, PrivacySettings.REAL, PrivacySettings.DATA_CALENDAR, null);
+                        } else if (pset  == null) {
+                            if(pSet.isDefaultDenyObject())
+                                pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                    PrivacySettings.DATA_CALENDAR, null, pSet);
+                            else
+                                pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                        PrivacySettings.DATA_CALENDAR, null, pSet);
                         } else {
                             output_label = "[empty]";
                             output = new PrivacyCursor();
-                            pSetMan.notification(packageName, PrivacySettings.EMPTY, PrivacySettings.DATA_CALENDAR, null);
+                            if(pSet.isDefaultDenyObject())
+                                pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                        PrivacySettings.DATA_CALENDAR, null, pSet);
+                            else
+                                pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                        PrivacySettings.DATA_CALENDAR, null, pSet);
                         }
                     } catch (PrivacyServiceException e) {
                         output_label = "[empty]";
@@ -128,12 +166,25 @@ public final class PrivacyContentResolver {
                     String packageName = context.getPackageName();
                     try {
                         PrivacySettings pSet = pSetMan.getSettings(packageName);
-                        if (pSet == null || pSet.getMmsSetting() == PrivacySettings.REAL) {
-                            pSetMan.notification(packageName, PrivacySettings.REAL, PrivacySettings.DATA_MMS, null);
+                        if (pSet.getMmsSetting() == PrivacySettings.REAL) {
+                            pSetMan.notification(packageName, PrivacySettings.REAL,
+                                    PrivacySettings.DATA_MMS, null);
+                        } else if (pSet == null) {
+                            if (pSet.isDefaultDenyObject())
+                                pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                        PrivacySettings.DATA_MMS, null, pSet);
+                            else
+                                pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                        PrivacySettings.DATA_MMS, null, pSet);
                         } else {
                             output_label = "[empty]";
                             output = new PrivacyCursor();
-                            pSetMan.notification(packageName, PrivacySettings.EMPTY, PrivacySettings.DATA_MMS, null);
+                            if(pSet.isDefaultDenyObject())
+                                pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                        PrivacySettings.DATA_MMS, null, pSet);
+                           else
+                                pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                        PrivacySettings.DATA_MMS, null, pSet);
                         }
                     } catch (PrivacyServiceException e) {
                         output_label = "[empty]";
@@ -152,8 +203,15 @@ public final class PrivacyContentResolver {
                     String packageName = context.getPackageName();
                     try {
                         PrivacySettings pSet = pSetMan.getSettings(packageName);
-                        if (pSet == null || pSet.getSmsSetting() == PrivacySettings.REAL) {
+                        if (pSet.getSmsSetting() == PrivacySettings.REAL) {
                             pSetMan.notification(packageName, PrivacySettings.REAL, PrivacySettings.DATA_SMS, null);
+                        } else if (pSet == null) {
+                            if (pSet.isDefaultDenyObject())
+                                pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                        PrivacySettings.DATA_SMS, null, pSet);
+                            else
+                                pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                        PrivacySettings.DATA_SMS, null, pSet);
                         } else {
                             output_label = "[empty]";
                             output = new PrivacyCursor();
@@ -162,7 +220,12 @@ public final class PrivacyContentResolver {
                     } catch (PrivacyServiceException e) {
                         output_label = "[empty]";
                         output = new PrivacyCursor();
-                        pSetMan.notification(packageName, PrivacySettings.ERROR, PrivacySettings.DATA_SMS, null);
+                        if(pSet.isDefaultDenyObject())
+                            pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                    PrivacySettings.DATA_SMS, null, pSet);
+                        else
+                            pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                    PrivacySettings.DATA_SMS, null, pSet);
                     } catch (NullPointerException e) {
                         PrivacyDebugger.e(TAG, "PrivacyContentResolver:"
                             + "enforcePrivacyPermissions: NullPointerException occurred, "
@@ -179,12 +242,24 @@ public final class PrivacyContentResolver {
                     String packageName = context.getPackageName();
                     try {
                         PrivacySettings pSet = pSetMan.getSettings(packageName);
-                        if (pSet == null || (pSet.getMmsSetting() == PrivacySettings.REAL && pSet.getSmsSetting() == PrivacySettings.REAL)) {
+                        if ((pSet.getMmsSetting() == PrivacySettings.REAL && pSet.getSmsSetting() == PrivacySettings.REAL)) {
                             pSetMan.notification(packageName, PrivacySettings.REAL, PrivacySettings.DATA_MMS_SMS, null);
+                        } else if (pSet == null) {
+                            if (pSet.isDefaultDenyObject())
+                                pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                        PrivacySettings.DATA_MMS_SMS, null, pSet);
+                            else
+                                pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                        PrivacySettings.DATA_MMS_SMS, null, pSet);
                         } else {
                             output_label = "[empty]";
                             output = new PrivacyCursor();
-                            pSetMan.notification(packageName, PrivacySettings.EMPTY, PrivacySettings.DATA_MMS_SMS, null);
+                            if(pSet.isDefaultDenyObject())
+                                pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                        PrivacySettings.DATA_MMS_SMS, null, pSet);
+                            else
+                                pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                        PrivacySettings.DATA_MMS_SMS, null, pSet);
                         }
                     } catch (PrivacyServiceException e) {
                         output_label = "[empty]";
@@ -202,12 +277,24 @@ public final class PrivacyContentResolver {
                     String packageName = context.getPackageName();
                     try {
                         PrivacySettings pSet = pSetMan.getSettings(packageName);
-                        if (pSet == null || pSet.getCallLogSetting() == PrivacySettings.REAL) {
+                        if (pSet.getCallLogSetting() == PrivacySettings.REAL) {
                             pSetMan.notification(packageName, PrivacySettings.REAL, PrivacySettings.DATA_CALL_LOG, null);
+                        } else if (pSet == null) {
+                            if (pSet.isDefaultDenyObject())
+                                pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                        PrivacySettings.DATA_CALL_LOG, null, pSet);
+                            else
+                                pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                        PrivacySettings.DATA_CALL_LOG, null, pSet);
                         } else {
                             output_label = "[empty]";
                             output = new PrivacyCursor();
-                            pSetMan.notification(packageName, PrivacySettings.EMPTY, PrivacySettings.DATA_CALL_LOG, null);
+                            if(pSet.isDefaultDenyObject())
+                                pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                        PrivacySettings.DATA_CALL_LOG, null, pSet);
+                            else
+                                pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                        PrivacySettings.DATA_CALL_LOG, null, pSet);
                         }
                     } catch (PrivacyServiceException e) {
                         output_label = "[empty]";
@@ -226,12 +313,24 @@ public final class PrivacyContentResolver {
                     String packageName = context.getPackageName();
                     try {
                         PrivacySettings pSet = pSetMan.getSettings(packageName);
-                        if (pSet == null || pSet.getBookmarksSetting() == PrivacySettings.REAL) {
+                        if (pSet.getBookmarksSetting() == PrivacySettings.REAL) {
                             pSetMan.notification(packageName, PrivacySettings.REAL, PrivacySettings.DATA_BOOKMARKS, null);
+                        } else if (pSet == null) {
+                            if (pSet.isDefaultDenyObject())
+                                pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                        PrivacySettings.DATA_BOOKMARKS, null, pSet);
+                            else
+                                pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                        PrivacySettings.DATA_BOOKMARKS, null, pSet);
                         } else {                            
                             output_label = "[empty]";
                             output = new PrivacyCursor();
-                            pSetMan.notification(packageName, PrivacySettings.EMPTY, PrivacySettings.DATA_BOOKMARKS, null);
+                            if(pSet.isDefaultDenyObject())
+                                pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                                        PrivacySettings.DATA_BOOKMARKS, null, pSet);
+                            else
+                                pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                                        PrivacySettings.DATA_BOOKMARKS, null, pSet);
                         }
                     } catch (PrivacyServiceException e) {
                         output_label = "[empty]";
