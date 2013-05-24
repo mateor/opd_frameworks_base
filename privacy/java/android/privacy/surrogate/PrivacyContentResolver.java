@@ -259,6 +259,7 @@ public final class PrivacyContentResolver {
     /**
      * This method is especially for faking android_id if google wants to read it in their privacy database
      * @author CollegeDev
+     * @deprecated
      * @param uri
      * @param projection
      * @param context
