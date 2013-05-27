@@ -63,13 +63,17 @@ public final class PrivacyLocationManager extends LocationManager {
         String packageName = context.getPackageName();
         try {
             PrivacySettings pSet = pSetMan.getSettings(packageName);
-            if (pSet == null || pSet.getLocationGpsSetting() == PrivacySettings.REAL) {
+            if (pSet.getLocationGpsSetting() == PrivacySettings.REAL) {
                 pSetMan.notification(packageName, PrivacySettings.REAL, 
                     PrivacySettings.DATA_LOCATION_GPS, null);
             } else {
-                pSetMan.notification(packageName, PrivacySettings.EMPTY, 
-                    PrivacySettings.DATA_LOCATION_GPS, null);
-                return false;
+            if(pSet.isDefaultDenyObject())
+                pSetMan.notification(packageName, uid, PrivacySettings.ERROR,
+                        PrivacySettings.DATA_LOCATION_GPS, null, pSet);
+            else
+                pSetMan.notification(packageName, uid, PrivacySettings.EMPTY,
+                        PrivacySettings.DATA_LOCATION_GPS, null, pSet);
+            return false;
             }
         } catch (PrivacyServiceException e) {
             pSetMan.notification(packageName, PrivacySettings.ERROR, PrivacySettings.DATA_LOCATION_GPS, null);
