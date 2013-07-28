@@ -163,17 +163,17 @@ public class PrivacyWifiManager extends WifiManager{
 	}
 	
 	
-	@Override
-	public boolean startScanActive(){
-		PrivacySettings settings = pSetMan.getSettings(context.getPackageName(), Binder.getCallingUid());
-		if(pSetMan != null && settings != null && settings.getWifiInfoSetting() != PrivacySettings.REAL){
-			pSetMan.notification(context.getPackageName(),-1, PrivacySettings.EMPTY, PrivacySettings.DATA_WIFI_INFO, null, null);  
-			return false;
-		} else{
-			pSetMan.notification(context.getPackageName(),-1, PrivacySettings.REAL, PrivacySettings.DATA_WIFI_INFO, null, null); 
-			return super.startScanActive();
-		}
-	}
+//	@Override
+//	public boolean startScanActive(){
+//		PrivacySettings settings = pSetMan.getSettings(context.getPackageName(), Binder.getCallingUid());
+//		if(pSetMan != null && settings != null && settings.getWifiInfoSetting() != PrivacySettings.REAL){
+//			pSetMan.notification(context.getPackageName(),-1, PrivacySettings.EMPTY, PrivacySettings.DATA_WIFI_INFO, null, null);  
+//			return false;
+//		} else{
+//			pSetMan.notification(context.getPackageName(),-1, PrivacySettings.REAL, PrivacySettings.DATA_WIFI_INFO, null, null); 
+//			return super.startScanActive();
+//		}
+//	}
 	
 	@Override
 	public boolean setWifiEnabled(boolean enabled){
