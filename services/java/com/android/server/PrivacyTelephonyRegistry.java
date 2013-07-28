@@ -328,7 +328,7 @@ public class PrivacyTelephonyRegistry extends TelephonyRegistry{
                     	if(!isPackageAllowed(PERMISSION_CELL_INFO,r.pkgForDebug)){
                     		//for testings only at first
                             CellInfoGsm fakeCellInfo = new CellInfoGsm(); 
-                            CellIdentityGsm fakeCellIdentity = new CellIdentityGsm(11,11,549,525,2);
+                            CellIdentityGsm fakeCellIdentity = new CellIdentityGsm(11,11,549,525);
                             fakeCellInfo.setCellIdentity(fakeCellIdentity);
                     		//r.callback.onCellInfoChanged(new CellInfoGsm(CellInfo.TIMESTAMP_TYPE_UNKNOWN,System.currentTimeMillis(),System.currentTimeMillis(),true,new SignalStrength(),new CellIdentityGsm(11,11,549,545,2,"unknown")));
                     		r.callback.onCellInfoChanged(new ArrayList<CellInfo>(Arrays.asList(fakeCellInfo)));
